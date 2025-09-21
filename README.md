@@ -125,6 +125,6 @@ After the hackathon, all approved submissions will be:
 
 **Questions?** Reach out in the Discord server or contact the Havilah Academy team.
 
-Good luck, and happy hacking! 🚀
+Shalom with love from Havilah Academy and happy hacking! 🚀
 
 
