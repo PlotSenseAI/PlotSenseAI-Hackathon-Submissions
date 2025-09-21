@@ -101,8 +101,8 @@ Brief description of what your project does and why it's innovative.
 - **Platform:** YouTube (public/unlisted) or Google Drive
 - **Quality:** Clear audio and visible interface
 
-### 5. Social Media (Optional but Recommended)
-- **Platforms:** Twitter/X, LinkedIn, TikTok, Instagram
+### 5. Social Media (Required)
+- **Platforms:** Twitter/X and LinkedIn
 - **Required hashtags:** `#PlotsenseHackathon #HavilahAcademy`
 - **Tag:** `@HavilahAcademy`
 - **Content ideas:**
@@ -144,6 +144,7 @@ Before submitting, verify:
 - [ ] All team member information is accurate
 - [ ] Contact email is valid and monitored
 - [ ] Demo video is accessible and within time limit
+- [ ] Posted on Twitter/X and LinkedIn with required hashtags
 - [ ] PR submitted to `review` branch
 - [ ] Discord post in `#submissions` channel
 
@@ -165,4 +166,4 @@ Projects will be evaluated on:
 
 ---
 
-**Good luck with your submission! We're excited to see what you build! 🚀**
+**Shalom with love from Havilah! We're excited to see what you build! 🚀**

@@ -1,246 +1,242 @@
-name: Validate Hackathon Submission
+name: Validate Submission
 
 on:
   pull_request:
-    branches:
-      - submissions
+    branches: [ review ]
+    paths:
+      - 'submissions/plotsense-2025/*.json'
 
 jobs:
   validate:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10.*"
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
 
-      - name: Install dependencies
-        run: |
-          pip install -r templates/ml_requirements.txt || echo "ML track not found"
-          pip install -r templates/dev_template/requirements.txt || echo "Dev track not found"
-          pip install -e ./libs/plotsense
-          pip install -r ./libs/plotsense/requirements.txt
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install jsonschema requests
 
-      - name: Validate submission checklist & generate report
-        run: |
-          SUBMISSION="submissions/${GITHUB_HEAD_REF}"
-          REPORT="submission_report.md"
-          MISSING=0
+    - name: Validate submission
+      run: |
+        python << 'EOF'
+        import json
+        import os
+        import re
+        import sys
+        from pathlib import Path
 
-          echo "# Submission Validation Report" > $REPORT
-          echo "Team branch: $GITHUB_HEAD_REF" >> $REPORT
-          echo "" >> $REPORT
+        def validate_submission():
+            # Find JSON files in the submissions directory
+            submissions_dir = Path("submissions/plotsense-2025")
+            json_files = list(submissions_dir.glob("*.json"))
 
-          # Debug info
-          echo "## Debug Info" >> $REPORT
-          echo "- Submission path: $SUBMISSION" >> $REPORT
-          if [ ! -d "$SUBMISSION" ]; then
-            echo "❌ Submission folder '$SUBMISSION' does not exist." >> $REPORT
-            echo "" >> $REPORT
-            echo "Please ensure your PR is made against the 'submissions' branch and the folder name matches your team name." >> $REPORT
-            MISSING=1
-            echo "validation_failed=1" >> $GITHUB_ENV
-            exit 0
-          fi
+            # Exclude template file
+            json_files = [f for f in json_files if f.name != "TEMPLATE.json"]
 
-          # Detect track from track.txt file
-          TRACK=""
-          if [ -f "$SUBMISSION/track.txt" ]; then
-            TRACK=$(cat "$SUBMISSION/track.txt" | tr '[:lower:]' '[:upper:]' | tr -d '[:space:]')
-            if [ "$TRACK" != "ML" ] && [ "$TRACK" != "DEV" ]; then
-              echo "## Track Detection" >> $REPORT
-              echo "❌ Invalid track specified in track.txt: '$TRACK'" >> $REPORT
-              echo "" >> $REPORT
-              echo "The track.txt file must contain either 'ML' or 'DEV' (case insensitive)" >> $REPORT
-              MISSING=1
-              echo "validation_failed=1" >> $GITHUB_ENV
-              exit 0
-            fi
-          else
-            echo "## Track Detection" >> $REPORT
-            echo "❌ track.txt file missing" >> $REPORT
-            echo "" >> $REPORT
-            echo "Please create a track.txt file in your submission folder containing either:" >> $REPORT
-            echo "- 'ML' (for Machine Learning track)" >> $REPORT  
-            echo "- 'DEV' (for Development track)" >> $REPORT
-            MISSING=1
-            echo "validation_failed=1" >> $GITHUB_ENV
-            exit 0
-          fi
+            if not json_files:
+                return "❌ **No submission JSON file found**\n\nPlease add your submission JSON file to `submissions/plotsense-2025/`"
 
-          echo "## Track Detection" >> $REPORT
-          echo "✅ Detected as **${TRACK} Track** submission (from track.txt)" >> $REPORT
-          echo "" >> $REPORT
-          echo "## Checklist Validation" >> $REPORT
+            if len(json_files) > 1:
+                return f"❌ **Multiple submission files found: {[f.name for f in json_files]}**\n\nPlease submit only one JSON file per team."
 
-          ML_ITEMS=(
-            "notebooks:folder:*.ipynb"
-            "video-link.txt:file"
-            "README.md:file"
-            "docs:folder:*.md"
-            "requirements.txt:file"
-          )
+            json_file = json_files[0]
 
-          echo "### ML Track" >> $REPORT
-          for ITEM in "${ML_ITEMS[@]}"; do
-            NAME=$(echo $ITEM | cut -d: -f1)
-            TYPE=$(echo $ITEM | cut -d: -f2)
-            PATTERN=$(echo $ITEM | cut -d: -f3)
+            try:
+                with open(json_file, 'r') as f:
+                    data = json.load(f)
+            except json.JSONDecodeError as e:
+                return f"❌ **Invalid JSON format in {json_file.name}**\n\nError: {str(e)}"
 
-            if [ "$TYPE" == "folder" ]; then
-              if [ -d "$SUBMISSION/$NAME" ] && [ "$(ls -A $SUBMISSION/$NAME/$PATTERN 2>/dev/null)" ]; then
-                echo "- ✅ $NAME present with required files" >> $REPORT
-              elif [ ! -d "$SUBMISSION/$NAME" ]; then
-                echo "- ❌ $NAME folder missing (create folder and add $PATTERN files)" >> $REPORT
-                MISSING=1
-              else
-                echo "- ❌ $NAME folder exists but no $PATTERN files found" >> $REPORT
-                MISSING=1
-              fi
-            else
-              if [ -f "$SUBMISSION/$NAME" ]; then
-                echo "- ✅ $NAME present" >> $REPORT
-              else
-                echo "- ❌ $NAME missing" >> $REPORT
-                MISSING=1
-              fi
-            fi
-          done
-
-          DEV_ITEMS=(
-            "src:folder:*.py"
-            "tests:folder:*"
-            "docs:folder:*.md"
-            "requirements.txt:file"
-            "video-link.txt:file"
-            "README.md:file"
-          )
-
-          echo "" >> $REPORT
-          echo "### Dev Track" >> $REPORT
-          for ITEM in "${DEV_ITEMS[@]}"; do
-            NAME=$(echo $ITEM | cut -d: -f1)
-            TYPE=$(echo $ITEM | cut -d: -f2)
-            PATTERN=$(echo $ITEM | cut -d: -f3)
-
-            if [ "$TYPE" == "folder" ]; then
-              if [ -d "$SUBMISSION/$NAME" ] && [ "$(ls -A $SUBMISSION/$NAME/$PATTERN 2>/dev/null)" ]; then
-                echo "- ✅ $NAME present with required files" >> $REPORT
-              else
-                echo "- ❌ $NAME missing or no $PATTERN files" >> $REPORT
-                MISSING=1
-              fi
-            else
-              if [ -f "$SUBMISSION/$NAME" ]; then
-                echo "- ✅ $NAME present" >> $REPORT
-              else
-                echo "- ❌ $NAME missing" >> $REPORT
-                MISSING=1
-              fi
-            fi
-          done
-
-          echo "" >> $REPORT
-          if [ $MISSING -eq 0 ]; then
-            echo "✅ All required files present!" >> $REPORT
-          else
-            echo "❌ Some files are missing. See details above." >> $REPORT
-            echo "" >> $REPORT
-            echo "### Quick Fix Guide:" >> $REPORT
-            echo "1. Check which items are marked with ❌ above" >> $REPORT
-            echo "2. Create the missing files/folders in your submission" >> $REPORT
-            echo "3. Push your changes to trigger validation again" >> $REPORT
-          fi
-          
-          # Store track, team folder, and validation result for later steps
-          echo "submission_track=$TRACK" >> $GITHUB_ENV
-          echo "team_folder=$TEAM_FOLDER" >> $GITHUB_ENV
-          echo "validation_failed=$MISSING" >> $GITHUB_ENV
-
-      - name: Run tests (Dev track)
-        continue-on-error: true
-        if: env.submission_track == 'DEV'
-        run: |
-          TESTS="submissions/${{ env.team_folder }}/tests"
-          if [ -d "$TESTS" ]; then
-            echo "" >> submission_report.md
-            echo "## Dev Track Test Results" >> submission_report.md
-            pytest $TESTS --maxfail=1 --disable-warnings --tb=short || echo "- ❌ Some tests failed" >> submission_report.md
-          else
-            echo "" >> submission_report.md
-            echo "## Dev Track Test Results" >> submission_report.md
-            echo "- ⚠️ No tests folder found" >> submission_report.md
-          fi
-
-      - name: Run notebooks (ML track)
-        continue-on-error: true
-        if: env.submission_track == 'ML'
-        run: |
-          NOTEBOOKS="submissions/${{ env.team_folder }}/notebooks"
-          if [ -d "$NOTEBOOKS" ]; then
-            echo "" >> submission_report.md
-            echo "## ML Track Notebook Execution" >> submission_report.md
-            for nb in $NOTEBOOKS/*.ipynb; do
-              jupyter nbconvert --to notebook --execute $nb --inplace && echo "- ✅ Notebook $(basename $nb) executed successfully" >> submission_report.md || echo "- ❌ Notebook $(basename $nb) failed" >> submission_report.md
-            done
-          else
-            echo "" >> submission_report.md
-            echo "## ML Track Notebook Execution" >> submission_report.md
-            echo "- ⚠️ No notebooks folder found" >> submission_report.md
-          fi
-
-      - name: Upload submission report
-        uses: actions/upload-artifact@v4
-        with:
-          name: submission-report
-          path: submission_report.md
-
-      - name: Comment validation results on PR
-        if: always()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const report = fs.readFileSync('submission_report.md', 'utf8');
-            
-            // Find existing bot comment
-            const comments = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number
-            });
-            
-            const botComment = comments.data.find(comment => 
-              comment.user.login === 'github-actions[bot]' && 
-              comment.body.includes('# Submission Validation Report')
-            );
-            
-            if (botComment) {
-              // Update existing comment
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: botComment.id,
-                body: report
-              });
-            } else {
-              // Create new comment
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: report
-              });
+            # Validate required fields
+            required_fields = {
+                'id': 'User ID (e.g., PSH2025-023)',
+                'project_name': 'Project name',
+                'team_name': 'Team name',
+                'repo_url': 'Repository URL',
+                'video_url': 'Demo video URL',
+                'social_links': 'Social media links (Twitter/X and LinkedIn)',
+                'discord_handle': 'Discord handle',
+                'contact_email': 'Contact email',
+                'team_members': 'Team members list'
             }
 
-      - name: Check overall status
-        run: |
-          if [ "${{ env.validation_failed }}" == "1" ]; then
-              echo "❌ Submission checklist failed - check the PR comment for details"
-              exit 1
-          fi
-          echo "✅ Submission validation passed"
+            results = []
+            missing_fields = []
+
+            for field, description in required_fields.items():
+                if field not in data:
+                    results.append(f"❌ **{description}** - Missing field: `{field}`")
+                    missing_fields.append(field)
+                elif not data[field] or (isinstance(data[field], str) and data[field].strip() == ""):
+                    results.append(f"❌ **{description}** - Empty field: `{field}`")
+                    missing_fields.append(field)
+                elif isinstance(data[field], list) and len(data[field]) == 0:
+                    results.append(f"❌ **{description}** - Empty array: `{field}`")
+                    missing_fields.append(field)
+                else:
+                    results.append(f"✅ **{description}** - Valid")
+
+            # Specific validations
+            validation_results = []
+
+            # Validate User ID format
+            if 'id' in data and data['id']:
+                if re.match(r'^PSH2025-\d{3}$', data['id']):
+                    validation_results.append("✅ **User ID format** - Valid (PSH2025-XXX)")
+                else:
+                    validation_results.append(f"❌ **User ID format** - Invalid format: `{data['id']}`. Should be PSH2025-XXX")
+
+            # Validate repository URL
+            if 'repo_url' in data and data['repo_url']:
+                if 'github.com' in data['repo_url'] and data.get('id', '') in data['repo_url']:
+                    validation_results.append("✅ **Repository URL** - Valid GitHub URL with User ID")
+                else:
+                    validation_results.append("❌ **Repository URL** - Should be a GitHub URL containing your User ID")
+
+            # Validate social links
+            if 'social_links' in data and data['social_links']:
+                social_links = data['social_links']
+                if isinstance(social_links, list) and len(social_links) >= 2:
+                    has_twitter = any('twitter.com' in link or 'x.com' in link for link in social_links)
+                    has_linkedin = any('linkedin.com' in link for link in social_links)
+
+                    if has_twitter and has_linkedin:
+                        validation_results.append("✅ **Social media posts** - Both Twitter/X and LinkedIn links provided")
+                    else:
+                        missing = []
+                        if not has_twitter: missing.append("Twitter/X")
+                        if not has_linkedin: missing.append("LinkedIn")
+                        validation_results.append(f"❌ **Social media posts** - Missing: {', '.join(missing)}")
+                else:
+                    validation_results.append("❌ **Social media posts** - Need both Twitter/X and LinkedIn links")
+
+            # Validate email format
+            if 'contact_email' in data and data['contact_email']:
+                if re.match(r'^[^@]+@[^@]+\.[^@]+$', data['contact_email']):
+                    validation_results.append("✅ **Email format** - Valid")
+                else:
+                    validation_results.append(f"❌ **Email format** - Invalid: `{data['contact_email']}`")
+
+            # Validate team members
+            if 'team_members' in data and data['team_members']:
+                if isinstance(data['team_members'], list) and len(data['team_members']) > 0:
+                    member_valid = True
+                    for i, member in enumerate(data['team_members']):
+                        if not isinstance(member, dict) or 'name' not in member or 'role' not in member:
+                            validation_results.append(f"❌ **Team member {i+1}** - Must have 'name' and 'role' fields")
+                            member_valid = False
+                    if member_valid:
+                        validation_results.append(f"✅ **Team members** - {len(data['team_members'])} member(s) with valid format")
+                else:
+                    validation_results.append("❌ **Team members** - Must be a non-empty array")
+
+            # Generate final report
+            report = "## 🤖 Submission Validation Results\n\n"
+            report += f"**Submission file:** `{json_file.name}`\n\n"
+
+            if missing_fields:
+                report += "### ❌ Validation Failed\n\n"
+                report += "**Required Fields Check:**\n"
+                for result in results:
+                    report += f"- {result}\n"
+
+                report += "\n**Additional Validations:**\n"
+                for result in validation_results:
+                    report += f"- {result}\n"
+
+                report += "\n### 📋 Quick Fix Guide:\n"
+                report += "1. Ensure all required fields are filled in your JSON file\n"
+                report += "2. Check the format requirements above\n"
+                report += "3. Make sure your repository is public\n"
+                report += "4. Post on both Twitter/X and LinkedIn with hashtags `#PlotsenseHackathon #HavilahAcademy`\n"
+                report += "5. Push your changes to trigger validation again\n"
+
+            else:
+                all_passed = all("✅" in result for result in validation_results)
+                if all_passed:
+                    report += "### ✅ Validation Passed!\n\n"
+                    report += "Your submission meets all requirements. Great work!\n\n"
+                    report += "**Verified Requirements:**\n"
+                    for result in results + validation_results:
+                        report += f"- {result}\n"
+                else:
+                    report += "### ⚠️ Partial Validation\n\n"
+                    report += "**Required Fields Check:**\n"
+                    for result in results:
+                        report += f"- {result}\n"
+
+                    report += "\n**Additional Validations:**\n"
+                    for result in validation_results:
+                        report += f"- {result}\n"
+
+            return report
+
+        # Run validation and save results
+        validation_report = validate_submission()
+
+        with open('validation_results.txt', 'w') as f:
+            f.write(validation_report)
+
+        # Exit with error if validation failed
+        if "❌ Validation Failed" in validation_report or "⚠️ Partial Validation" in validation_report:
+            print("Validation failed - check results")
+            sys.exit(1)
+        else:
+            print("Validation passed!")
+        EOF
+
+    - name: Comment on PR
+      if: always()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+
+          // Read validation results
+          let comment = '';
+          try {
+            const results = fs.readFileSync('validation_results.txt', 'utf8');
+            comment = results;
+          } catch (error) {
+            comment = '## 🤖 Submission Validation Results\n\n❌ **Validation failed to run properly. Please check the workflow logs.**\n\n';
+          }
+
+          comment += '\n---\n*This is an automated check. Please ensure all requirements are met before requesting review.*';
+
+          // Find existing validation comment
+          const comments = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number
+          });
+
+          const botComment = comments.data.find(comment =>
+            comment.user.login === 'github-actions[bot]' &&
+            comment.body.includes('🤖 Submission Validation Results')
+          );
+
+          if (botComment) {
+            // Update existing comment
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: botComment.id,
+              body: comment
+            });
+          } else {
+            // Create new comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment
+            });
+          }

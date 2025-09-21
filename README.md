@@ -1,6 +1,8 @@
 
 # 🚀 Plotsense Hackathon Submissions
 
+![Submission Validation](https://github.com/Havilah-Blockchain-Studios/PlotSenseAI-Hackathon-Submissions/workflows/Validate%20Submission/badge.svg)
+
 Welcome to the official submission repository for the **Plotsense Hackathon** hosted by **Havilah Academy**!
 
 ## 📋 Submission Process
@@ -23,7 +25,7 @@ Create a **public GitHub repository** with:
   - Setup instructions
   - Team members & roles
   - Video demo link
-  - Social media post links (optional)
+  - Social media post links (required)
 
 ### Step 3: Submit to This Repository
 
@@ -41,7 +43,8 @@ Create a **public GitHub repository** with:
   "repo_url": "https://github.com/yourteam/plotsense-hackathon-PSH2025-XXX",
   "video_url": "https://youtu.be/your-demo-video",
   "social_links": [
-    "https://twitter.com/yourteam/status/12345"
+    "https://twitter.com/yourteam/status/12345",
+    "https://linkedin.com/posts/yourteam_plotsense-hackathon"
   ],
   "discord_handle": "yourhandle#1234",
   "contact_email": "yourteam@example.com",
@@ -63,8 +66,8 @@ Create a **public GitHub repository** with:
 - Upload to YouTube (public/unlisted) or Google Drive
 - Add the link to your GitHub README and submission JSON
 
-### Step 5: Social Media (Optional)
-- Post about your project on Twitter/X, LinkedIn, TikTok, or Instagram
+### Step 5: Social Media (Required)
+- Post about your project on Twitter/X and LinkedIn
 - Use hashtags: `#PlotsenseHackathon #HavilahAcademy`
 - Tag: `@HavilahAcademy`
 - Add links to your submission JSON
@@ -91,6 +94,7 @@ Before submitting, ensure you have:
 - [ ] Created your submission JSON file in this repository
 - [ ] Opened a PR to the `review` branch
 - [ ] Uploaded your demo video
+- [ ] Posted on Twitter/X and LinkedIn with required hashtags
 - [ ] Posted in Discord #submissions channel
 
 ## 🎯 Important Notes
@@ -99,6 +103,18 @@ Before submitting, ensure you have:
 - **Valid contact email required** - We'll use it for updates
 - **Complete all requirements** - Incomplete submissions may not be considered
 - **Public repositories only** - Ensure your project repo is public
+
+## 🤖 Automated Validation
+
+When you submit your PR, our automated system will:
+- ✅ **Validate your JSON format** - Check all required fields are present
+- ✅ **Verify User ID format** - Ensure it matches PSH2025-XXX pattern
+- ✅ **Check repository URL** - Confirm it's a GitHub URL with your User ID
+- ✅ **Validate social media** - Ensure both Twitter/X and LinkedIn links are provided
+- ✅ **Verify email format** - Check your contact email is valid
+- ✅ **Review team structure** - Validate team member information
+
+The bot will comment on your PR with validation results. **Fix any issues** and push changes to re-trigger validation.
 
 ## 🏆 Post-Hackathon
 
