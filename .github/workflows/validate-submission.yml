@@ -27,12 +27,20 @@ jobs:
 
       - name: Validate submission checklist & generate report
         run: |
-          SUBMISSION="submissions/${GITHUB_HEAD_REF}"
+          BRANCH_NAME="${GITHUB_HEAD_REF#refs/heads/}"
+          SUBMISSION="submissions/${BRANCH_NAME}"
           REPORT="submission_report.md"
           MISSING=0
 
           echo "# Submission Validation Report" > $REPORT
-          echo "Team branch: $GITHUB_HEAD_REF" >> $REPORT
+          echo "Team branch: $BRANCH_NAME" >> $REPORT
+          echo "" >> $REPORT
+
+          # Debug: show what path we're checking
+          echo "Checking submission path: $SUBMISSION" >> $REPORT
+          echo "Current directory: $(pwd)" >> $REPORT
+          echo "Listing submissions folder:" >> $REPORT
+          ls -la submissions/ >> $REPORT 2>&1 || echo "No submissions folder" >> $REPORT
           echo "" >> $REPORT
 
           # Detect track from track.txt file
