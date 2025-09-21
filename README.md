@@ -68,7 +68,7 @@ All submissions require **PlotSense** as a development dependency.
 
 ```bash
 pip install -e ./libs/plotsense
-````
+
 This ensures participants can **import PlotSense modules directly** for both ML and Dev tracks.
 ```
 
