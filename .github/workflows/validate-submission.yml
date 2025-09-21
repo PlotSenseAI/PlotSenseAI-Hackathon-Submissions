@@ -139,7 +139,7 @@ jobs:
           fi
 
       - name: Upload submission report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: submission-report
           path: submission_report.md
