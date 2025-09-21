@@ -27,23 +27,25 @@ jobs:
 
       - name: Validate submission checklist & generate report
         run: |
-          # Find the team folder name (first directory under submissions/)
-          TEAM_FOLDER=$(find submissions -maxdepth 1 -type d -name '[!.]*' | head -n 1 | xargs basename)
-          SUBMISSION="submissions/$TEAM_FOLDER"
+          SUBMISSION="submissions/${GITHUB_HEAD_REF}"
           REPORT="submission_report.md"
           MISSING=0
 
           echo "# Submission Validation Report" > $REPORT
-          echo "Team folder: $TEAM_FOLDER" >> $REPORT
-          echo "Branch name: ${{ github.head_ref }}" >> $REPORT
+          echo "Team branch: $GITHUB_HEAD_REF" >> $REPORT
           echo "" >> $REPORT
 
-          # Debug: show what path we're checking
-          echo "Checking submission path: $SUBMISSION" >> $REPORT
-          echo "Current directory: $(pwd)" >> $REPORT
-          echo "Listing submissions folder:" >> $REPORT
-          ls -la submissions/ >> $REPORT 2>&1 || echo "No submissions folder" >> $REPORT
-          echo "" >> $REPORT
+          # Debug info
+          echo "## Debug Info" >> $REPORT
+          echo "- Submission path: $SUBMISSION" >> $REPORT
+          if [ ! -d "$SUBMISSION" ]; then
+            echo "❌ Submission folder '$SUBMISSION' does not exist." >> $REPORT
+            echo "" >> $REPORT
+            echo "Please ensure your PR is made against the 'submissions' branch and the folder name matches your team name." >> $REPORT
+            MISSING=1
+            echo "validation_failed=1" >> $GITHUB_ENV
+            exit 0
+          fi
 
           # Detect track from track.txt file
           TRACK=""
@@ -154,15 +156,16 @@ jobs:
             echo "3. Push your changes to trigger validation again" >> $REPORT
           fi
           
-          # Store track and validation result for later steps
+          # Store track, team folder, and validation result for later steps
           echo "submission_track=$TRACK" >> $GITHUB_ENV
+          echo "team_folder=$TEAM_FOLDER" >> $GITHUB_ENV
           echo "validation_failed=$MISSING" >> $GITHUB_ENV
 
       - name: Run tests (Dev track)
         continue-on-error: true
         if: env.submission_track == 'DEV'
         run: |
-          TESTS="submissions/${GITHUB_HEAD_REF}/tests"
+          TESTS="submissions/${{ env.team_folder }}/tests"
           if [ -d "$TESTS" ]; then
             echo "" >> submission_report.md
             echo "## Dev Track Test Results" >> submission_report.md
@@ -177,7 +180,7 @@ jobs:
         continue-on-error: true
         if: env.submission_track == 'ML'
         run: |
-          NOTEBOOKS="submissions/${GITHUB_HEAD_REF}/notebooks"
+          NOTEBOOKS="submissions/${{ env.team_folder }}/notebooks"
           if [ -d "$NOTEBOOKS" ]; then
             echo "" >> submission_report.md
             echo "## ML Track Notebook Execution" >> submission_report.md
