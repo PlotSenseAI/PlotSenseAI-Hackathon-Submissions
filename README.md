@@ -1,5 +1,5 @@
 
-# PlotSense Hackathon - September 2025
+# PlotSense Hackathon Submissions
 
 Welcome to the **PlotSense Hackathon**! This repository hosts all templates, scripts, and submissions for the hackathon. Whether you're participating in the **ML Track** or the **Dev Track**, this README will guide you through the repo structure, contribution workflow, and useful resources.
 
