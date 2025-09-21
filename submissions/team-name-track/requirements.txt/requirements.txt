@@ -1,0 +1,16 @@
+-e ./libs/plotsense
+numpy
+pandas
+matplotlib
+seaborn
+pytest
+python-dotenv
+ipykernel
+groq
+requests
+setuptools
+jupyter
+pytest-cov
+pytest-mock
+flake8
+autopep8
