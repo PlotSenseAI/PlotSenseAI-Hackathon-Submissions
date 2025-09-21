@@ -54,8 +54,11 @@ jobs:
             if [ "$TYPE" == "folder" ]; then
               if [ -d "$SUBMISSION/$NAME" ] && [ "$(ls -A $SUBMISSION/$NAME/$PATTERN 2>/dev/null)" ]; then
                 echo "- ✅ $NAME present with required files" >> $REPORT
+              elif [ ! -d "$SUBMISSION/$NAME" ]; then
+                echo "- ❌ $NAME folder missing (create folder and add $PATTERN files)" >> $REPORT
+                MISSING=1
               else
-                echo "- ❌ $NAME missing or no $PATTERN files" >> $REPORT
+                echo "- ❌ $NAME folder exists but no $PATTERN files found" >> $REPORT
                 MISSING=1
               fi
             else
@@ -106,7 +109,15 @@ jobs:
             echo "✅ All required files present!" >> $REPORT
           else
             echo "❌ Some files are missing. See details above." >> $REPORT
+            echo "" >> $REPORT
+            echo "### Quick Fix Guide:" >> $REPORT
+            echo "1. Check which items are marked with ❌ above" >> $REPORT
+            echo "2. Create the missing files/folders in your submission" >> $REPORT
+            echo "3. Push your changes to trigger validation again" >> $REPORT
           fi
+          
+          # Store validation result for later steps
+          echo "validation_failed=$MISSING" >> $GITHUB_ENV
 
       - name: Run tests (Dev track)
         continue-on-error: true
@@ -144,9 +155,48 @@ jobs:
           name: submission-report
           path: submission_report.md
 
+      - name: Comment validation results on PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('submission_report.md', 'utf8');
+            
+            // Find existing bot comment
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+            
+            const botComment = comments.data.find(comment => 
+              comment.user.login === 'github-actions[bot]' && 
+              comment.body.includes('# Submission Validation Report')
+            );
+            
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: report
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: report
+              });
+            }
+
       - name: Check overall status
         run: |
-          if [ $MISSING -eq 1 ]; then
-              echo "❌ Submission checklist failed"
+          if [ "${{ env.validation_failed }}" == "1" ]; then
+              echo "❌ Submission checklist failed - check the PR comment for details"
               exit 1
           fi
+          echo "✅ Submission validation passed"

@@ -20,11 +20,11 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.10.*"
 
       - name: Install dependencies
         run: |
-          pip install PyGithub mkdocs mkdocs-material
+          pip install PyGithub mkdocs mkdocs-material python-dotenv
 
       - name: Generate Submissions Index
         env:
@@ -33,7 +33,7 @@ jobs:
           python scripts/generate_submissions_index.py
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+        uses: plotsenseai/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
