@@ -14,3 +14,5 @@ pytest-cov
 pytest-mock
 flake8
 autopep8
+black
+pre-commit
