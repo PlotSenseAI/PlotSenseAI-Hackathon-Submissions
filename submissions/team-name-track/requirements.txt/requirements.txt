@@ -16,3 +16,8 @@ flake8
 autopep8
 black
 pre-commit
+# Add any additional dependencies your project requires below
+# For example:
+# scikit-learn
+scikit-learn
+xgboost
