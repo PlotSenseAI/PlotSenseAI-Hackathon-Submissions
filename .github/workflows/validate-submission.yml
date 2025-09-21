@@ -23,7 +23,7 @@ jobs:
           pip install -r templates/ml_requirements.txt || echo "ML track not found"
           pip install -r templates/dev_template/requirements.txt || echo "Dev track not found"
           pip install -e ./libs/plotsense
-          pip install -r ./libs/plotsense
+          pip install -r ./libs/plotsense/requirements.txt
 
       - name: Validate submission checklist & generate report
         run: |
