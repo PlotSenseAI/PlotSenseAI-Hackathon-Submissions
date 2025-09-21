@@ -1,125 +1,116 @@
 
-# PlotSense Hackathon Submissions
+# 🚀 Plotsense Hackathon Submissions
 
-Welcome to the **PlotSense Hackathon**! This repository hosts all templates, scripts, and submissions for the hackathon. Whether you're participating in the **ML Track** or the **Dev Track**, this README will guide you through the repo structure, contribution workflow, and useful resources.
+Welcome to the official submission repository for the **Plotsense Hackathon** hosted by **Havilah Academy**!
 
-## 🗂 Repository Structure
+## 📋 Submission Process
 
-```bash
-plotsense-hackathon/
-│
-├─ libs/plotsense/            # PlotSense library (editable install)
-│   └─ ...                    # Core PlotSense modules
-│
-├─ submissions/               # Team submissions
-│   ├─ teamname-ml/           # ML track submissions
-│   │   ├─ notebooks/         # Jupyter notebooks
-│   │   ├─ video-link.txt     # Link to team demo video
-        ├─ requirements.txt   # Python dependencies
-        ├─ docs/              # Technical documentation
-│   │   └─ README.md          # Team description
-│   └─ teamname-dev/          # Dev track submissions
-│       ├─ src/               # Source code contributions
-│       ├─ tests/             # Test scripts
-│       ├─ docs/              # Technical documentation
-        ├─ notebooks/         # Jupyter notebooks
-│       ├─ requirements.txt   # Python dependencies
-│       ├─ video-link.txt     # Link to team demo video
-│       └─ README.md          # Team description
-│
-├─ templates/                 # Starter templates for submissions
-│   ├─ ml\_notebook\_template.ipynb
-│   └─ dev\_template/
-│       ├─ src/
-│       ├─ tests/
-│       ├─ docs/
-│       └─ requirements.txt
-│
-├─ scripts/                   # Helper scripts
-│   └─ generate\_submissions\_index.py  # Generates docs/submissions\_index.md
-│
-├─ docs/                      # Hackathon documentation
-│   ├─ CONTRIBUTION\_GUIDE.md   # Guide for participants
-│   ├─ JUDGING.md              # Guide for judges
-│   └─ submissions\_index.md    # Auto-generated index of all submissions
-│
-└─ .env                        # Local environment variables (ignored in git)
+### Step 1: Fill the Submission Form
+- Complete the [Google Form](# "Form link will be provided") with:
+  - Team name & members
+  - Email contact(s)
+  - Discord username(s)
+  - Project title + description
+- **Important:** You'll receive a unique User ID (e.g., `PSH2025-023`)
 
+### Step 2: Create Your Project Repository
+Create a **public GitHub repository** with:
+- Repository name: `plotsense-hackathon-[YOUR-USER-ID]`
+- Include in your README.md:
+  - Your unique User ID
+  - Project description
+  - Tech stack used
+  - Setup instructions
+  - Team members & roles
+  - Video demo link
+  - Social media post links (optional)
+
+### Step 3: Submit to This Repository
+
+#### 🍴 Fork & Create Submission
+1. **Fork** this repository to your GitHub account
+2. Navigate to `submissions/plotsense-2025/`
+3. Create a new file: `[your-project-name].json`
+4. Use this template:
+
+```json
+{
+  "id": "PSH2025-XXX",
+  "project_name": "Your Project Name",
+  "team_name": "Your Team Name",
+  "repo_url": "https://github.com/yourteam/plotsense-hackathon-PSH2025-XXX",
+  "video_url": "https://youtu.be/your-demo-video",
+  "social_links": [
+    "https://twitter.com/yourteam/status/12345"
+  ],
+  "discord_handle": "yourhandle#1234",
+  "contact_email": "yourteam@example.com",
+  "team_members": [
+    { "name": "Member 1", "role": "Role" },
+    { "name": "Member 2", "role": "Role" }
+  ]
+}
 ```
 
-## 📘 Key Documentation
+#### 📤 Submit Pull Request
+1. **Commit** your JSON file to your fork
+2. **Open a Pull Request** to the `review` branch
+3. **PR Title:** `Submission: [YOUR-ID] - [Project Name]`
+4. **PR Description:** Include your User ID, repo link, video link, and team details
 
-- **[CONTRIBUTION_GUIDE.md](docs/CONTRIBUTION_GUIDE.md)**  
-Step-by-step guide for participants: setup, submission workflow, CI checklist, and templates.
+### Step 4: Video Demo
+- Create a **3-5 minute demo video**
+- Upload to YouTube (public/unlisted) or Google Drive
+- Add the link to your GitHub README and submission JSON
 
-- **[JUDGING.md](docs/JUDGING.md)**  
-Guidelines for judges: scoring criteria, rubric, review process, and tie-breakers.
+### Step 5: Social Media (Optional)
+- Post about your project on Twitter/X, LinkedIn, TikTok, or Instagram
+- Use hashtags: `#PlotsenseHackathon #HavilahAcademy`
+- Tag: `@HavilahAcademy`
+- Add links to your submission JSON
 
-- **[submissions_index.md](docs/submissions_index.md)**  
-Auto-generated index of all submissions with CI status, video links, and team info.
+### Step 6: Discord Verification
+Post in the `#submissions` Discord channel with:
+- Your unique User ID
+- GitHub repo link
+- Video link
+- Social links (if available)
+
+## 🔀 Branch Structure
+
+- **`main`** → Official docs and approved submissions
+- **`review`** → Submit PRs here for review
+- **`archive/plotsense-2025`** → Post-hackathon archive
+
+## ✅ Requirements Checklist
+
+Before submitting, ensure you have:
+- [ ] Filled out the Google Form and received your User ID
+- [ ] Created your project repository with the correct naming format
+- [ ] Included all required information in your project README
+- [ ] Created your submission JSON file in this repository
+- [ ] Opened a PR to the `review` branch
+- [ ] Uploaded your demo video
+- [ ] Posted in Discord #submissions channel
+
+## 🎯 Important Notes
+
+- **One submission per team** - Only one JSON file per team
+- **Valid contact email required** - We'll use it for updates
+- **Complete all requirements** - Incomplete submissions may not be considered
+- **Public repositories only** - Ensure your project repo is public
+
+## 🏆 Post-Hackathon
+
+After the hackathon, all approved submissions will be:
+- Showcased on the Havilah Academy website
+- Archived in the `archive/plotsense-2025` branch
+- Featured in our community highlights
 
 ---
 
-## 🔧 Development Dependencies
+**Questions?** Reach out in the Discord server or contact the Havilah Academy team.
 
-All submissions require **PlotSense** as a development dependency.  
-
-- **Install editable version**:
-
-```bash
-pip install -e ./libs/plotsense
-
-This ensures participants can **import PlotSense modules directly** for both ML and Dev tracks.
-```
-
-## 🚀 How to Contribute
-
-1. Follow the instructions in **[CONTRIBUTION\_GUIDE.md](docs/CONTRIBUTION_GUIDE.md)**
-2. Create your submission under `submissions/teamname-ml/` or `submissions/teamname-dev/`
-3. Open a **Pull Request** to the `submissions` branch
-4. CI will validate your submission (checklist, tests, notebook execution)
-5. Your submission will appear automatically in `docs/submissions_index.md` and on the **GitHub Pages** site
-
-## 🧩 CI Workflow
-
-* Validates **submission checklist**
-* Runs **Dev tests** (`pytest`) and **ML notebooks** (`nbconvert`)
-* Generates **submission\_report.md** artifact for each PR
-* Updates **`submissions_index.md`** for judges to review
-
-> Participants receive immediate feedback if any files are missing or if tests/notebooks fail.
-
-
-## 🎯 Hackathon Tracks
-
-### ML Track
-
-* Focus: Notebooks, data visualizations, AI enhancements
-* Required files: `notebooks/`, `video-link.txt`, `README.md`
-
-### Dev Track
-
-* Focus: Source code improvements, tests, technical documentation
-* Required files: `src/`, `tests/`, `docs/`, `requirements.txt`, `video-link.txt`, `README.md`
-
-## 💡 Tips for Participants
-
-* Test your notebooks and code locally
-* Keep your commits clean and meaningful
-* Follow the provided folder structure strictly to pass CI checks
-* Use descriptive README and clear video links
-
-## 🏆 Judging
-
-Judges should consult **[JUDGING.md](docs/JUDGING.md)**. All submissions are automatically indexed with **checklist, tests, notebook status, and video links** on GitHub Pages.
-
-## 🛠 Resources
-
-* **PlotSense Docs**: [https://github.com/your-org/plotsense-docs](https://github.com/PlotSenseAI/PlotSense-Docs)
-* **PlotSense Dev Repo**: [https://github.com/your-org/plotsense](https://github.com/PlotSenseAI/PlotSense)
-
-**Happy hacking! Build, test, visualize, and share your data insights with PlotSense.**
-
-```
+Good luck, and happy hacking! 🚀
 
 
