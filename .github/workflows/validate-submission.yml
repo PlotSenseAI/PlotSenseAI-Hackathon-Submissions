@@ -16,14 +16,14 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.10
+          python-version: "3.10.*"
 
       - name: Install dependencies
         run: |
           pip install -r templates/ml_requirements.txt || echo "ML track not found"
           pip install -r templates/dev_template/requirements.txt || echo "Dev track not found"
           pip install -e ./libs/plotsense
-          pip install pytest nbconvert nbformat
+          pip install pytest nbconvert nbformat python-dotenv
 
       - name: Validate submission checklist & generate report
         run: |
