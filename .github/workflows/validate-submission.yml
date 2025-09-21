@@ -35,6 +35,34 @@ jobs:
           echo "Team branch: $GITHUB_HEAD_REF" >> $REPORT
           echo "" >> $REPORT
 
+          # Detect track from track.txt file
+          TRACK=""
+          if [ -f "$SUBMISSION/track.txt" ]; then
+            TRACK=$(cat "$SUBMISSION/track.txt" | tr '[:lower:]' '[:upper:]' | tr -d '[:space:]')
+            if [ "$TRACK" != "ML" ] && [ "$TRACK" != "DEV" ]; then
+              echo "## Track Detection" >> $REPORT
+              echo "❌ Invalid track specified in track.txt: '$TRACK'" >> $REPORT
+              echo "" >> $REPORT
+              echo "The track.txt file must contain either 'ML' or 'DEV' (case insensitive)" >> $REPORT
+              MISSING=1
+              echo "validation_failed=1" >> $GITHUB_ENV
+              exit 0
+            fi
+          else
+            echo "## Track Detection" >> $REPORT
+            echo "❌ track.txt file missing" >> $REPORT
+            echo "" >> $REPORT
+            echo "Please create a track.txt file in your submission folder containing either:" >> $REPORT
+            echo "- 'ML' (for Machine Learning track)" >> $REPORT  
+            echo "- 'DEV' (for Development track)" >> $REPORT
+            MISSING=1
+            echo "validation_failed=1" >> $GITHUB_ENV
+            exit 0
+          fi
+
+          echo "## Track Detection" >> $REPORT
+          echo "✅ Detected as **${TRACK} Track** submission (from track.txt)" >> $REPORT
+          echo "" >> $REPORT
           echo "## Checklist Validation" >> $REPORT
 
           ML_ITEMS=(
@@ -116,11 +144,13 @@ jobs:
             echo "3. Push your changes to trigger validation again" >> $REPORT
           fi
           
-          # Store validation result for later steps
+          # Store track and validation result for later steps
+          echo "submission_track=$TRACK" >> $GITHUB_ENV
           echo "validation_failed=$MISSING" >> $GITHUB_ENV
 
       - name: Run tests (Dev track)
         continue-on-error: true
+        if: env.submission_track == 'DEV'
         run: |
           TESTS="submissions/${GITHUB_HEAD_REF}/tests"
           if [ -d "$TESTS" ]; then
@@ -135,6 +165,7 @@ jobs:
 
       - name: Run notebooks (ML track)
         continue-on-error: true
+        if: env.submission_track == 'ML'
         run: |
           NOTEBOOKS="submissions/${GITHUB_HEAD_REF}/notebooks"
           if [ -d "$NOTEBOOKS" ]; then
