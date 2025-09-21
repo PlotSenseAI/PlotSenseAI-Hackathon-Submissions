@@ -1,0 +1,12 @@
+site_name: PlotSense Hackathon Submissions
+site_url: https://plotsenseai.github.io/PlotSenseAI-Hackathon-September-2025
+repo_url: https://github.com/PlotSenseAI/PlotSenseAI-Hackathon-September-2025
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.indexes
+    - content.code.copy
+nav:
+  - Home: index.md
+  - Submissions: submissions_index.md

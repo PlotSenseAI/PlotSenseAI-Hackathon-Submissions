@@ -4,11 +4,11 @@ on:
   pull_request:
     branches:
       - submissions
-      - main
 
 jobs:
   validate:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -16,29 +16,137 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: 3.10
 
       - name: Install dependencies
         run: |
-          if [ -f requirements.txt ]; then
-            pip install -r requirements.txt
-          fi
-          pip install pytest jupyter nbconvert
+          pip install -r templates/ml_requirements.txt || echo "ML track not found"
+          pip install -r templates/dev_template/requirements.txt || echo "Dev track not found"
+          pip install -e ./libs/plotsense
+          pip install pytest nbconvert nbformat
 
-      - name: Run tests (if present)
+      - name: Validate submission checklist & generate report
         run: |
-          if [ -d tests ]; then
-            pytest -q || exit 1
+          SUBMISSION="submissions/${GITHUB_HEAD_REF}"
+          REPORT="submission_report.md"
+          MISSING=0
+
+          echo "# Submission Validation Report" > $REPORT
+          echo "Team branch: $GITHUB_HEAD_REF" >> $REPORT
+          echo "" >> $REPORT
+
+          echo "## Checklist Validation" >> $REPORT
+
+          ML_ITEMS=(
+            "notebooks:folder:*.ipynb"
+            "video-link.txt:file"
+            "README.md:file"
+            "docs:folder:*.md"
+            "requirements.txt:file"
+          )
+
+          echo "### ML Track" >> $REPORT
+          for ITEM in "${ML_ITEMS[@]}"; do
+            NAME=$(echo $ITEM | cut -d: -f1)
+            TYPE=$(echo $ITEM | cut -d: -f2)
+            PATTERN=$(echo $ITEM | cut -d: -f3)
+
+            if [ "$TYPE" == "folder" ]; then
+              if [ -d "$SUBMISSION/$NAME" ] && [ "$(ls -A $SUBMISSION/$NAME/$PATTERN 2>/dev/null)" ]; then
+                echo "- ✅ $NAME present with required files" >> $REPORT
+              else
+                echo "- ❌ $NAME missing or no $PATTERN files" >> $REPORT
+                MISSING=1
+              fi
+            else
+              if [ -f "$SUBMISSION/$NAME" ]; then
+                echo "- ✅ $NAME present" >> $REPORT
+              else
+                echo "- ❌ $NAME missing" >> $REPORT
+                MISSING=1
+              fi
+            fi
+          done
+
+          DEV_ITEMS=(
+            "src:folder:*.py"
+            "tests:folder:*"
+            "docs:folder:*.md"
+            "requirements.txt:file"
+            "video-link.txt:file"
+            "README.md:file"
+          )
+
+          echo "" >> $REPORT
+          echo "### Dev Track" >> $REPORT
+          for ITEM in "${DEV_ITEMS[@]}"; do
+            NAME=$(echo $ITEM | cut -d: -f1)
+            TYPE=$(echo $ITEM | cut -d: -f2)
+            PATTERN=$(echo $ITEM | cut -d: -f3)
+
+            if [ "$TYPE" == "folder" ]; then
+              if [ -d "$SUBMISSION/$NAME" ] && [ "$(ls -A $SUBMISSION/$NAME/$PATTERN 2>/dev/null)" ]; then
+                echo "- ✅ $NAME present with required files" >> $REPORT
+              else
+                echo "- ❌ $NAME missing or no $PATTERN files" >> $REPORT
+                MISSING=1
+              fi
+            else
+              if [ -f "$SUBMISSION/$NAME" ]; then
+                echo "- ✅ $NAME present" >> $REPORT
+              else
+                echo "- ❌ $NAME missing" >> $REPORT
+                MISSING=1
+              fi
+            fi
+          done
+
+          echo "" >> $REPORT
+          if [ $MISSING -eq 0 ]; then
+            echo "✅ All required files present!" >> $REPORT
           else
-            echo "No tests directory, skipping..."
+            echo "❌ Some files are missing. See details above." >> $REPORT
           fi
 
-      - name: Execute notebook (if present)
+      - name: Run tests (Dev track)
+        continue-on-error: true
         run: |
-          if [ -f notebooks/demo.ipynb ]; then
-            jupyter nbconvert --to notebook --execute notebooks/demo.ipynb \
-              --ExecutePreprocessor.timeout=600 \
-              --output executed_demo.ipynb
+          TESTS="submissions/${GITHUB_HEAD_REF}/tests"
+          if [ -d "$TESTS" ]; then
+            echo "" >> submission_report.md
+            echo "## Dev Track Test Results" >> submission_report.md
+            pytest $TESTS --maxfail=1 --disable-warnings --tb=short || echo "- ❌ Some tests failed" >> submission_report.md
           else
-            echo "No demo.ipynb notebook found, skipping..."
+            echo "" >> submission_report.md
+            echo "## Dev Track Test Results" >> submission_report.md
+            echo "- ⚠️ No tests folder found" >> submission_report.md
+          fi
+
+      - name: Run notebooks (ML track)
+        continue-on-error: true
+        run: |
+          NOTEBOOKS="submissions/${GITHUB_HEAD_REF}/notebooks"
+          if [ -d "$NOTEBOOKS" ]; then
+            echo "" >> submission_report.md
+            echo "## ML Track Notebook Execution" >> submission_report.md
+            for nb in $NOTEBOOKS/*.ipynb; do
+              jupyter nbconvert --to notebook --execute $nb --inplace && echo "- ✅ Notebook $(basename $nb) executed successfully" >> submission_report.md || echo "- ❌ Notebook $(basename $nb) failed" >> submission_report.md
+            done
+          else
+            echo "" >> submission_report.md
+            echo "## ML Track Notebook Execution" >> submission_report.md
+            echo "- ⚠️ No notebooks folder found" >> submission_report.md
+          fi
+
+      - name: Upload submission report
+        uses: actions/upload-artifact@v3
+        with:
+          name: submission-report
+          path: submission_report.md
+
+      - name: Check overall status
+        run: |
+          if [ $MISSING -eq 1 ]; then
+              echo "❌ Submission checklist failed"
+              exit 1
           fi
