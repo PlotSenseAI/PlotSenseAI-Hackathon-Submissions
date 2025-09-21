@@ -14,8 +14,8 @@ This guide provides detailed instructions for participating in the Plotsense Hac
 Create a **public GitHub repository** with these requirements:
 
 #### Repository Naming
-- **Format:** `plotsense-hackathon-[YOUR-USER-ID]`
-- **Example:** `plotsense-hackathon-PSH2025-023`
+- **Format:** `plotsenseai-hackathon-[YOUR-USER-ID]`
+- **Example:** `plotsenseai-hackathon-PSH2025-023`
 
 #### Required README.md Content
 Your project repository must include:
@@ -63,7 +63,7 @@ Brief description of what your project does and why it's innovative.
 2. Clone your fork locally
 
 #### Step 3.2: Create Your Submission File
-1. Navigate to `submissions/plotsense-2025/`
+1. Navigate to `submissions/plotsenseai-hackathon-2025/`
 2. Create a file named `[your-project-name].json`
 3. Use the template below:
 
@@ -72,15 +72,17 @@ Brief description of what your project does and why it's innovative.
   "id": "PSH2025-XXX",
   "project_name": "Your Project Name",
   "team_name": "Your Team Name",
-  "repo_url": "https://github.com/yourteam/plotsense-hackathon-PSH2025-XXX",
-  "video_url": "https://youtu.be/your-demo-video",
+  "repo_url": "https://github.com/yourteam/plotsenseai-hackathon-PSH2025-XXX",
+  "video_url": "https://youtube.com/your-demo-video",
   "social_links": [
-    "https://twitter.com/yourteam/status/12345"
+    "https://x.com/yourteam/status/12345",
+    "https://linkedin.com/posts/yourteam_plotsense-hackathon"
   ],
   "discord_handle": "yourhandle#1234",
   "contact_email": "yourteam@example.com",
   "team_members": [
-    { "name": "Member Name", "role": "Developer Role" }
+    { "name": "Member 1", "role": "Role" },
+    { "name": "Member 2", "role": "Role" }
   ]
 }
 ```
@@ -101,10 +103,10 @@ Brief description of what your project does and why it's innovative.
 - **Platform:** YouTube (public/unlisted) or Google Drive
 - **Quality:** Clear audio and visible interface
 
-### 5. Social Media (Required)
+### 5. Social Media
 - **Platforms:** Twitter/X and LinkedIn
-- **Required hashtags:** `#PlotsenseHackathon #HavilahAcademy`
-- **Tag:** `@HavilahAcademy`
+- **Required hashtags:** `#PlotSenseAIHackathon2025 #HavilahAcademy`
+- **Tag:** `@HavilahAcademy` and `@PlotSenseAI`
 - **Content ideas:**
   - Project screenshots
   - Team working photos

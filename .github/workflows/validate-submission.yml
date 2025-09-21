@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [ review ]
     paths:
-      - 'submissions/plotsense-2025/*.json'
+      - 'submissions/plotsenseai-hackathon-2025/*.json'
 
 jobs:
   validate:
@@ -35,14 +35,14 @@ jobs:
 
         def validate_submission():
             # Find JSON files in the submissions directory
-            submissions_dir = Path("submissions/plotsense-2025")
+            submissions_dir = Path("submissions/plotsenseai-hackathon-2025")
             json_files = list(submissions_dir.glob("*.json"))
 
             # Exclude template file
             json_files = [f for f in json_files if f.name != "TEMPLATE.json"]
 
             if not json_files:
-                return "❌ **No submission JSON file found**\n\nPlease add your submission JSON file to `submissions/plotsense-2025/`"
+                return "❌ **No submission JSON file found**\n\nPlease add your submission JSON file to `submissions/plotsenseai-hackathon-2025/`"
 
             if len(json_files) > 1:
                 return f"❌ **Multiple submission files found: {[f.name for f in json_files]}**\n\nPlease submit only one JSON file per team."
@@ -96,10 +96,10 @@ jobs:
 
             # Validate repository URL
             if 'repo_url' in data and data['repo_url']:
-                if 'github.com' in data['repo_url'] and data.get('id', '') in data['repo_url']:
+                if 'github.com' in data['repo_url'] and data.get('id', '') in data['repo_url'] and 'plotsenseai-hackathon' in data['repo_url']:
                     validation_results.append("✅ **Repository URL** - Valid GitHub URL with User ID")
                 else:
-                    validation_results.append("❌ **Repository URL** - Should be a GitHub URL containing your User ID")
+                    validation_results.append("❌ **Repository URL** - Should be a GitHub URL in format: github.com/yourteam/plotsenseai-hackathon-PSH2025-XXX")
 
             # Validate social links
             if 'social_links' in data and data['social_links']:
@@ -156,7 +156,7 @@ jobs:
                 report += "1. Ensure all required fields are filled in your JSON file\n"
                 report += "2. Check the format requirements above\n"
                 report += "3. Make sure your repository is public\n"
-                report += "4. Post on both Twitter/X and LinkedIn with hashtags `#PlotsenseHackathon #HavilahAcademy`\n"
+                report += "4. Post on both Twitter/X and LinkedIn with hashtags `#PlotSenseAIHackathon2025 #HavilahAcademy`\n"
                 report += "5. Push your changes to trigger validation again\n"
 
             else:

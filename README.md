@@ -9,29 +9,28 @@ Welcome to the official submission repository for the **Plotsense Hackathon** ho
 
 ### Step 1: Fill the Submission Form
 - Complete the [Google Form](# "Form link will be provided") with:
-  - Team name & members
-  - Email contact(s)
-  - Discord username(s)
-  - Project title + description
-- **Important:** You'll receive a unique User ID (e.g., `PSH2025-023`)
+  - Project Title + Description
+  - Contact Email
+  - Social Profile Links (X/Twitter, and LinkedIn)
+- **Important:** You'll receive a unique User ID (e.g., `PSH2025-023`) after you've submitted the form. Copy and keep somewhere safe. It will be needed for the next steps below.
 
 ### Step 2: Create Your Project Repository
 Create a **public GitHub repository** with:
-- Repository name: `plotsense-hackathon-[YOUR-USER-ID]`
+- Repository name: `plotsenseai-hackathon-[YOUR-USER-ID]`
 - Include in your README.md:
   - Your unique User ID
   - Project description
   - Tech stack used
   - Setup instructions
   - Team members & roles
-  - Video demo link
-  - Social media post links (required)
+  - Video demo link (see Step 4 for details)
+  - Social media post links (see Step 5 for details)
 
 ### Step 3: Submit to This Repository
 
 #### 🍴 Fork & Create Submission
 1. **Fork** this repository to your GitHub account
-2. Navigate to `submissions/plotsense-2025/`
+2. Navigate to `submissions/plotsenseai-hackathon-2025/`
 3. Create a new file: `[your-project-name].json`
 4. Use this template:
 
@@ -40,10 +39,10 @@ Create a **public GitHub repository** with:
   "id": "PSH2025-XXX",
   "project_name": "Your Project Name",
   "team_name": "Your Team Name",
-  "repo_url": "https://github.com/yourteam/plotsense-hackathon-PSH2025-XXX",
-  "video_url": "https://youtu.be/your-demo-video",
+  "repo_url": "https://github.com/yourteam/plotsenseai-hackathon-PSH2025-XXX",
+  "video_url": "https://youtube.com/your-demo-video",
   "social_links": [
-    "https://twitter.com/yourteam/status/12345",
+    "https://x.com/yourteam/status/12345",
     "https://linkedin.com/posts/yourteam_plotsense-hackathon"
   ],
   "discord_handle": "yourhandle#1234",
@@ -66,18 +65,15 @@ Create a **public GitHub repository** with:
 - Upload to YouTube (public/unlisted) or Google Drive
 - Add the link to your GitHub README and submission JSON
 
-### Step 5: Social Media (Required)
+### Step 5: Social Media
 - Post about your project on Twitter/X and LinkedIn
-- Use hashtags: `#PlotsenseHackathon #HavilahAcademy`
-- Tag: `@HavilahAcademy`
+- Use hashtags: `#PlotSenseAIHackathon2025 #HavilahAcademy`
+- Tag: `@HavilahAcademy` and `@PlotSenseAI`
 - Add links to your submission JSON
 
 ### Step 6: Discord Verification
 Post in the `#submissions` Discord channel with:
-- Your unique User ID
 - GitHub repo link
-- Video link
-- Social links (if available)
 
 ## 🔀 Branch Structure
 
@@ -95,6 +91,8 @@ Before submitting, ensure you have:
 - [ ] Opened a PR to the `review` branch
 - [ ] Uploaded your demo video
 - [ ] Posted on Twitter/X and LinkedIn with required hashtags
+- [ ] Starred PlotSense Github
+- [ ] Followed Havilah Academy and PlotSenseAI on X/Twitter, LinkedIn, and YouTube
 - [ ] Posted in Discord #submissions channel
 
 ## 🎯 Important Notes
@@ -120,7 +118,7 @@ The bot will comment on your PR with validation results. **Fix any issues** and 
 
 After the hackathon, all approved submissions will be:
 - Showcased on the Havilah Academy website
-- Archived in the `archive/plotsense-2025` branch
+- Archived in the `archive/plotsenseai-hackathon-2025` branch
 - Featured in our community highlights
 
 ---
