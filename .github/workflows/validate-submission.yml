@@ -1,0 +1,44 @@
+name: Validate Hackathon Submission
+
+on:
+  pull_request:
+    branches:
+      - submissions
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+          pip install pytest jupyter nbconvert
+
+      - name: Run tests (if present)
+        run: |
+          if [ -d tests ]; then
+            pytest -q || exit 1
+          else
+            echo "No tests directory, skipping..."
+          fi
+
+      - name: Execute notebook (if present)
+        run: |
+          if [ -f notebooks/demo.ipynb ]; then
+            jupyter nbconvert --to notebook --execute notebooks/demo.ipynb \
+              --ExecutePreprocessor.timeout=600 \
+              --output executed_demo.ipynb
+          else
+            echo "No demo.ipynb notebook found, skipping..."
+          fi
