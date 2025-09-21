@@ -4,7 +4,8 @@ on:
   pull_request:
     branches: [ review ]
     paths:
-      - 'submissions/plotsenseai-hackathon-2025/*.json'
+      - 'submissions/plotsense-2025-ml/*.json'
+      - 'submissions/plotsense-2025-dev/*.json'
 
 jobs:
   validate:
@@ -34,15 +35,19 @@ jobs:
         from pathlib import Path
 
         def validate_submission():
-            # Find JSON files in the submissions directory
-            submissions_dir = Path("submissions/plotsenseai-hackathon-2025")
-            json_files = list(submissions_dir.glob("*.json"))
+            # Find JSON files in both track directories
+            ml_dir = Path("submissions/plotsense-2025-ml")
+            dev_dir = Path("submissions/plotsense-2025-dev")
+
+            ml_files = list(ml_dir.glob("*.json")) if ml_dir.exists() else []
+            dev_files = list(dev_dir.glob("*.json")) if dev_dir.exists() else []
+            json_files = ml_files + dev_files
 
             # Exclude template file
             json_files = [f for f in json_files if f.name != "TEMPLATE.json"]
 
             if not json_files:
-                return "❌ **No submission JSON file found**\n\nPlease add your submission JSON file to `submissions/plotsenseai-hackathon-2025/`"
+                return "❌ **No submission JSON file found**\n\nPlease add your submission JSON file to the appropriate track directory:\n- `submissions/plotsense-2025-ml/` for ML track\n- `submissions/plotsense-2025-dev/` for Dev track"
 
             if len(json_files) > 1:
                 return f"❌ **Multiple submission files found: {[f.name for f in json_files]}**\n\nPlease submit only one JSON file per team."
@@ -58,6 +63,7 @@ jobs:
             # Validate required fields
             required_fields = {
                 'id': 'User ID (e.g., PSH2025-023)',
+                'track': 'Track (PlotSense ML or PlotSense Dev)',
                 'project_name': 'Project name',
                 'team_name': 'Team name',
                 'repo_url': 'Repository URL',
@@ -93,6 +99,24 @@ jobs:
                     validation_results.append("✅ **User ID format** - Valid (PSH2025-XXX)")
                 else:
                     validation_results.append(f"❌ **User ID format** - Invalid format: `{data['id']}`. Should be PSH2025-XXX")
+
+            # Validate track field
+            if 'track' in data and data['track']:
+                valid_tracks = ["PlotSense ML", "PlotSense Dev"]
+                if data['track'] in valid_tracks:
+                    validation_results.append(f"✅ **Track** - Valid: {data['track']}")
+
+                    # Validate track matches directory
+                    file_dir = json_file.parent.name
+                    expected_dir = "plotsense-2025-ml" if data['track'] == "PlotSense ML" else "plotsense-2025-dev"
+                    if file_dir == expected_dir:
+                        validation_results.append("✅ **Track directory** - Submission in correct directory")
+                    else:
+                        validation_results.append(f"❌ **Track directory** - {data['track']} submission should be in {expected_dir}/ directory")
+                else:
+                    validation_results.append(f"❌ **Track** - Invalid track: `{data['track']}`. Must be 'PlotSense ML' or 'PlotSense Dev'")
+            else:
+                validation_results.append("❌ **Track** - Missing track field")
 
             # Validate repository URL
             if 'repo_url' in data and data['repo_url']:

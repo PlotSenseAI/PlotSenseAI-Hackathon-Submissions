@@ -1,6 +1,7 @@
 {
   "id": "PSH2025-XXX",
-  "project_name": "Your Project Name",
+  "track": "PlotSense ML",
+  "project_name": "Your ML Project Name",
   "team_name": "Your Team Name",
   "repo_url": "https://github.com/yourteam/plotsenseai-hackathon-PSH2025-XXX",
   "video_url": "https://youtube.com/your-demo-video",
@@ -11,7 +12,7 @@
   "discord_handle": "yourhandle#1234",
   "contact_email": "yourteam@example.com",
   "team_members": [
-    { "name": "Member 1", "role": "Role" },
-    { "name": "Member 2", "role": "Role" }
+    { "name": "Member 1", "role": "ML Engineer" },
+    { "name": "Member 2", "role": "Data Scientist" }
   ]
 }

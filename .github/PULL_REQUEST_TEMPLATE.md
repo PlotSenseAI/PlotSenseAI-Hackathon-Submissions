@@ -29,7 +29,7 @@ Please confirm you have completed all requirements:
 - [ ] Filled out the Google Form and received User ID
 - [ ] Created public project repository with correct naming format
 - [ ] Project repository includes complete README.md
-- [ ] Created submission JSON file in `submissions/plotsense-2025/`
+- [ ] Created submission JSON file in the correct track directory
 - [ ] JSON file follows the required template format
 - [ ] Demo video is 3-5 minutes and publicly accessible
 - [ ] Posted in Discord #submissions channel

@@ -63,14 +63,18 @@ Brief description of what your project does and why it's innovative.
 2. Clone your fork locally
 
 #### Step 3.2: Create Your Submission File
-1. Navigate to `submissions/plotsenseai-hackathon-2025/`
+1. **Choose your track** and navigate to the appropriate directory:
+   - **PlotSense ML Track**: `submissions/plotsense-2025-ml/`
+   - **PlotSense Dev Track**: `submissions/plotsense-2025-dev/`
 2. Create a file named `[your-project-name].json`
-3. Use the template below:
+3. Use the appropriate template below:
 
+**For PlotSense ML Track:**
 ```json
 {
   "id": "PSH2025-XXX",
-  "project_name": "Your Project Name",
+  "track": "PlotSense ML",
+  "project_name": "Your ML Project Name",
   "team_name": "Your Team Name",
   "repo_url": "https://github.com/yourteam/plotsenseai-hackathon-PSH2025-XXX",
   "video_url": "https://youtube.com/your-demo-video",
@@ -81,8 +85,30 @@ Brief description of what your project does and why it's innovative.
   "discord_handle": "yourhandle#1234",
   "contact_email": "yourteam@example.com",
   "team_members": [
-    { "name": "Member 1", "role": "Role" },
-    { "name": "Member 2", "role": "Role" }
+    { "name": "Member 1", "role": "ML Engineer" },
+    { "name": "Member 2", "role": "Data Scientist" }
+  ]
+}
+```
+
+**For PlotSense Dev Track:**
+```json
+{
+  "id": "PSH2025-XXX",
+  "track": "PlotSense Dev",
+  "project_name": "Your Dev Project Name",
+  "team_name": "Your Team Name",
+  "repo_url": "https://github.com/yourteam/plotsenseai-hackathon-PSH2025-XXX",
+  "video_url": "https://youtube.com/your-demo-video",
+  "social_links": [
+    "https://x.com/yourteam/status/12345",
+    "https://linkedin.com/posts/yourteam_plotsense-hackathon"
+  ],
+  "discord_handle": "yourhandle#1234",
+  "contact_email": "yourteam@example.com",
+  "team_members": [
+    { "name": "Member 1", "role": "Fullstack Developer" },
+    { "name": "Member 2", "role": "AI Researcher" }
   ]
 }
 ```
@@ -118,10 +144,9 @@ Post in the `#submissions` channel with:
 ```
 🚀 **Submission Complete!**
 **User ID:** PSH2025-XXX
+**Track:** [PlotSense ML or PlotSense Dev]
 **Project:** [Project Name]
 **Repo:** [GitHub link]
-**Demo:** [Video link]
-**Social:** [Links if available]
 ```
 
 ## ⚠️ Common Mistakes to Avoid
@@ -142,6 +167,8 @@ Before submitting, verify:
 - [ ] Project repository is public
 - [ ] Repository name includes User ID
 - [ ] README.md includes all required sections
+- [ ] JSON file created in correct track directory
+- [ ] JSON file includes correct track field
 - [ ] JSON file follows exact template format
 - [ ] All team member information is accurate
 - [ ] Contact email is valid and monitored

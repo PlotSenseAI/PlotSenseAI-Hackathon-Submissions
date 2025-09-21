@@ -5,6 +5,16 @@
 
 Welcome to the official submission repository for the **Plotsense Hackathon** hosted by **Havilah Academy**!
 
+## 🏆 Prize Pool Breakdown
+
+💰 **Total Prize Pool: £600**
+
+### 🏅 Track 1 — PlotSense ML (£200)
+Use PlotSenseAI as your primary tool for exploratory data analysis (EDA) in a machine learning project.
+
+### 🏅 Track 2 — PlotSense Dev (£400)
+Develop modules that add advanced analytical capabilities to PlotSenseAI's core functionality.
+
 ## 📋 Submission Process
 
 ### Step 1: Fill the Submission Form
@@ -30,14 +40,18 @@ Create a **public GitHub repository** with:
 
 #### 🍴 Fork & Create Submission
 1. **Fork** this repository to your GitHub account
-2. Navigate to `submissions/plotsenseai-hackathon-2025/`
+2. **Choose your track** and navigate to the appropriate directory:
+   - **PlotSense ML Track**: `submissions/plotsense-2025-ml/`
+   - **PlotSense Dev Track**: `submissions/plotsense-2025-dev/`
 3. Create a new file: `[your-project-name].json`
-4. Use this template:
+4. Use the appropriate template below:
 
+**For PlotSense ML Track:**
 ```json
 {
   "id": "PSH2025-XXX",
-  "project_name": "Your Project Name",
+  "track": "PlotSense ML",
+  "project_name": "Your ML Project Name",
   "team_name": "Your Team Name",
   "repo_url": "https://github.com/yourteam/plotsenseai-hackathon-PSH2025-XXX",
   "video_url": "https://youtube.com/your-demo-video",
@@ -48,8 +62,30 @@ Create a **public GitHub repository** with:
   "discord_handle": "yourhandle#1234",
   "contact_email": "yourteam@example.com",
   "team_members": [
-    { "name": "Member 1", "role": "Role" },
-    { "name": "Member 2", "role": "Role" }
+    { "name": "Member 1", "role": "ML Engineer" },
+    { "name": "Member 2", "role": "Data Scientist" }
+  ]
+}
+```
+
+**For PlotSense Dev Track:**
+```json
+{
+  "id": "PSH2025-XXX",
+  "track": "PlotSense Dev",
+  "project_name": "Your Dev Project Name",
+  "team_name": "Your Team Name",
+  "repo_url": "https://github.com/yourteam/plotsenseai-hackathon-PSH2025-XXX",
+  "video_url": "https://youtube.com/your-demo-video",
+  "social_links": [
+    "https://x.com/yourteam/status/12345",
+    "https://linkedin.com/posts/yourteam_plotsense-hackathon"
+  ],
+  "discord_handle": "yourhandle#1234",
+  "contact_email": "yourteam@example.com",
+  "team_members": [
+    { "name": "Member 1", "role": "Fullstack Developer" },
+    { "name": "Member 2", "role": "AI Researcher" }
   ]
 }
 ```
@@ -87,7 +123,7 @@ Before submitting, ensure you have:
 - [ ] Filled out the Google Form and received your User ID
 - [ ] Created your project repository with the correct naming format
 - [ ] Included all required information in your project README
-- [ ] Created your submission JSON file in this repository
+- [ ] Created your submission JSON file in the correct track directory
 - [ ] Opened a PR to the `review` branch
 - [ ] Uploaded your demo video
 - [ ] Posted on Twitter/X and LinkedIn with required hashtags
@@ -118,7 +154,7 @@ The bot will comment on your PR with validation results. **Fix any issues** and 
 
 After the hackathon, all approved submissions will be:
 - Showcased on the Havilah Academy website
-- Archived in the `archive/plotsenseai-hackathon-2025` branch
+- Archived in the `archive/plotsense-2025` branch
 - Featured in our community highlights
 
 ---
