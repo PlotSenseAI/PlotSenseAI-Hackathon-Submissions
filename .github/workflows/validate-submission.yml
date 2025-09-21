@@ -27,13 +27,15 @@ jobs:
 
       - name: Validate submission checklist & generate report
         run: |
-          BRANCH_NAME="${GITHUB_HEAD_REF#refs/heads/}"
-          SUBMISSION="submissions/${BRANCH_NAME}"
+          # Find the team folder name (first directory under submissions/)
+          TEAM_FOLDER=$(find submissions -maxdepth 1 -type d -name '[!.]*' | head -n 1 | xargs basename)
+          SUBMISSION="submissions/$TEAM_FOLDER"
           REPORT="submission_report.md"
           MISSING=0
 
           echo "# Submission Validation Report" > $REPORT
-          echo "Team branch: $BRANCH_NAME" >> $REPORT
+          echo "Team folder: $TEAM_FOLDER" >> $REPORT
+          echo "Branch name: ${{ github.head_ref }}" >> $REPORT
           echo "" >> $REPORT
 
           # Debug: show what path we're checking
