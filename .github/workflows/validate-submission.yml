@@ -35,8 +35,8 @@ jobs:
           echo "Team branch: $GITHUB_HEAD_REF" >> $REPORT
           echo "" >> $REPORT
 
-          # Debug info
-          echo "## Debug Info" >> $REPORT
+          # Team folder Check
+          echo "## Team folder Check" >> $REPORT
           echo "- Submission path: $SUBMISSION" >> $REPORT
           if [ ! -d "$SUBMISSION" ]; then
             echo "❌ Submission folder '$SUBMISSION' does not exist." >> $REPORT
@@ -46,6 +46,9 @@ jobs:
             echo "validation_failed=1" >> $GITHUB_ENV
             exit 0
           fi
+
+          echo  "# Check PlotSense Hackathon Dashboard" >> $REPORT
+          echo "https://plotsenseai.github.io/PlotSenseAI-Submissions" >> $REPORT
 
           # Detect track from track.txt file
           TRACK=""
@@ -520,8 +523,8 @@ jobs:
           if [ ! -f "mkdocs.yml" ]; then
               cat > mkdocs.yml << 'EOF'
           site_name: PlotSense Hackathon Submissions
-          site_url: https://plotsenseai.github.io/PlotSenseAI-Hackathon-September-2025
-          repo_url: https://github.com/PlotSenseAI/PlotSenseAI-Hackathon-September-2025
+          site_url: https://plotsenseai.github.io/PlotSenseAI-Submissions
+          repo_url: https://github.com/PlotSenseAI/PlotSenseAI-Submissions
           theme:
             name: material
             features:
