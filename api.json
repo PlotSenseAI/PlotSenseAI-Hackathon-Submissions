@@ -1,0 +1,31 @@
+{
+  "updated": "2025-09-22T19:09:56.523976",
+  "summary": {
+    "ml_track": {
+      "open": 2,
+      "merged": 2,
+      "total": 4
+    },
+    "dev_track": {
+      "open": 0,
+      "merged": 0,
+      "total": 0
+    },
+    "unknown_track": {
+      "open": 0,
+      "merged": 0,
+      "total": 0
+    },
+    "all_tracks": {
+      "open": 2,
+      "merged": 2,
+      "total": 4
+    }
+  },
+  "current_pr": {
+    "number": 15,
+    "team": "team_plotsense",
+    "track": "ML",
+    "status": "passed"
+  }
+}
