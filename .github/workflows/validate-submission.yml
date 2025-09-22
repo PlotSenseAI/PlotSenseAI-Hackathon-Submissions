@@ -259,16 +259,15 @@ jobs:
               });
             }
 
-      - name: Check overall status
+      - name: Block merge if checklist failed
+        if: env.validation_failed == '1'
         run: |
-          if [ "${{ env.validation_failed }}" == "1" ]; then
-              echo "❌ Submission checklist failed - check the PR comment for details"
-              exit 1
-          fi
-          echo "✅ Submission validation passed"
+          echo "❌ Submission checklist failed - PR cannot be merged until all requirements are met"
+          echo "Check the PR comment for detailed validation report"
+          exit 1
 
-      - name: Update MkDocs submission index
-        if: always()
+      - name: Update MkDocs submission index with summary statistics
+        if: always() && env.validation_failed == '0'
         run: |
           # Install additional Python packages for MkDocs integration
           pip install PyGithub python-dotenv
@@ -293,21 +292,111 @@ jobs:
               current_pr_number = ${{ github.event.number }}
               current_pr = repo.get_pull(current_pr_number)
           
-          # Get merged PRs and current PR
-          pulls = list(repo.get_pulls(state='closed', base=SUBMISSIONS_BRANCH, sort='updated', direction='desc'))
-          if current_pr and current_pr.state == 'open':
-              pulls.insert(0, current_pr)
+          # Get only open and merged PRs (filter out closed without merge)
+          all_pulls = list(repo.get_pulls(state='all', base=SUBMISSIONS_BRANCH, sort='updated', direction='desc'))
+          
+          # Filter: only include open PRs and merged PRs
+          filtered_pulls = []
+          for pr in all_pulls:
+              if pr.state == 'open' or pr.merged:
+                  filtered_pulls.append(pr)
+          
+          # If current PR is being validated and passed, ensure it's included
+          if current_pr and current_pr.state == 'open' and "${{ env.validation_failed }}" == "0":
+              # Check if current PR is already in the list
+              if not any(pr.number == current_pr.number for pr in filtered_pulls):
+                  filtered_pulls.insert(0, current_pr)
+          
+          # Sort by update time (most recent first)
+          filtered_pulls.sort(key=lambda x: x.updated_at, reverse=True)
+          
+          # Calculate summary statistics
+          ml_open = 0
+          ml_merged = 0
+          dev_open = 0
+          dev_merged = 0
+          unknown_open = 0
+          unknown_merged = 0
+          
+          for pr in filtered_pulls:
+              track = "Unknown"
+              try:
+                  files = pr.get_files()
+                  for f in files:
+                      if f.filename.endswith('track.txt'):
+                          try:
+                              content_file = repo.get_contents(f.filename, ref=pr.head.sha)
+                              track = content_file.decoded_content.decode("utf-8").strip().upper()
+                              if track not in ["ML", "DEV"]:
+                                  track = "Unknown"
+                          except:
+                              track = "Unknown"
+                  if track == "Unknown":
+                      title = pr.title.lower()
+                      if "ml" in title or any("notebook" in f.filename.lower() for f in files):
+                          track = "ML"
+                      elif "dev" in title or any("src/" in f.filename for f in files):
+                          track = "DEV"
+              except:
+                  track = "Unknown"
+              
+              if pr.merged:
+                  if track == "ML":
+                      ml_merged += 1
+                  elif track == "DEV":
+                      dev_merged += 1
+                  else:
+                      unknown_merged += 1
+              else:  # open
+                  if track == "ML":
+                      ml_open += 1
+                  elif track == "DEV":
+                      dev_open += 1
+                  else:
+                      unknown_open += 1
+          
+          total_open = ml_open + dev_open + unknown_open
+          total_merged = ml_merged + dev_merged + unknown_merged
+          total_submissions = total_open + total_merged
           
           table_lines = []
           table_lines.append("# Hackathon Submissions")
           table_lines.append("")
           table_lines.append("!!! info \"Live Status\"")
           table_lines.append(f"    Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}")
+          table_lines.append("    Only showing: ✅ Open PRs and ✅ Merged submissions")
+          table_lines.append("")
+          
+          # Summary Statistics Section
+          table_lines.append("## 📊 Summary Statistics")
+          table_lines.append("")
+          table_lines.append("| Track | Open PRs | Merged | Total |")
+          table_lines.append("|-------|----------|--------|-------|")
+          table_lines.append(f"| **ML Track** | {ml_open} | {ml_merged} | **{ml_open + ml_merged}** |")
+          table_lines.append(f"| **Dev Track** | {dev_open} | {dev_merged} | **{dev_open + dev_merged}** |")
+          if unknown_open + unknown_merged > 0:
+              table_lines.append(f"| *Unknown* | {unknown_open} | {unknown_merged} | *{unknown_open + unknown_merged}* |")
+          table_lines.append(f"| **All Tracks** | **{total_open}** | **{total_merged}** | **{total_submissions}** |")
+          table_lines.append("")
+          
+          # Progress bars for visual representation
+          table_lines.append("### 📈 Progress Overview")
+          table_lines.append("")
+          
+          if total_submissions > 0:
+              ml_percent = ((ml_open + ml_merged) / total_submissions * 100) if total_submissions > 0 else 0
+              dev_percent = ((dev_open + dev_merged) / total_submissions * 100) if total_submissions > 0 else 0
+              
+              table_lines.append(f"**ML Track**: {ml_open + ml_merged} submissions ({ml_percent:.1f}%)")
+              table_lines.append(f"**Dev Track**: {dev_open + dev_merged} submissions ({dev_percent:.1f}%)")
+              table_lines.append("")
+          
+          table_lines.append("## 🔍 Detailed Submissions")
           table_lines.append("")
           table_lines.append("| Team | Track | Status | PR | Checklist | Tests | Notebooks | Video |")
           table_lines.append("|------|-------|--------|----|-----------|-------|-----------|-------|")
           
-          for pr in pulls[:20]:  # Show last 20 submissions
+          for pr in filtered_pulls[:20]:  # Show last 20 submissions
               team = pr.head.ref.replace('-', ' ').title()
               title = pr.title
               pr_link = pr.html_url
@@ -350,6 +439,13 @@ jobs:
                       tests_status = "✅"  # Assuming tests ran (continue-on-error)
                   elif track == "ML":
                       notebooks_status = "✅"  # Assuming notebooks ran (continue-on-error)
+              elif pr.merged:
+                  # For merged PRs, assume they passed validation
+                  checklist_status = "✅"
+                  if track == "DEV":
+                      tests_status = "✅"
+                  elif track == "ML":
+                      notebooks_status = "✅"
               
               # Try to get video link
               try:
@@ -375,7 +471,28 @@ jobs:
           # Also create a simple JSON API
           api_data = {
               "updated": datetime.now().isoformat(),
-              "total_submissions": len(pulls),
+              "summary": {
+                  "ml_track": {
+                      "open": ml_open,
+                      "merged": ml_merged,
+                      "total": ml_open + ml_merged
+                  },
+                  "dev_track": {
+                      "open": dev_open,
+                      "merged": dev_merged,
+                      "total": dev_open + dev_merged
+                  },
+                  "unknown_track": {
+                      "open": unknown_open,
+                      "merged": unknown_merged,
+                      "total": unknown_open + unknown_merged
+                  },
+                  "all_tracks": {
+                      "open": total_open,
+                      "merged": total_merged,
+                      "total": total_submissions
+                  }
+              },
               "current_pr": {
                   "number": current_pr.number if current_pr else None,
                   "team": "${{ env.team_folder }}",
@@ -387,13 +504,14 @@ jobs:
           with open("docs/api.json", "w") as f:
               json.dump(api_data, f, indent=2)
           
-          print("✅ Submissions index and API updated!")
+          print(f"✅ Submissions index updated! Showing {len(filtered_pulls)} submissions")
+          print(f"📊 Summary: ML Track - {ml_open} open, {ml_merged} merged | Dev Track - {dev_open} open, {dev_merged} merged")
           EOF
           
           python update_submissions.py
 
       - name: Deploy to GitHub Pages with MkDocs
-        if: always()
+        if: always() && env.validation_failed == '0'
         run: |
           # Install MkDocs and material theme
           pip install mkdocs mkdocs-material
@@ -433,7 +551,9 @@ jobs:
 
           EOF
           fi
+          
       - name: Build and verify MkDocs site
+        if: always() && env.validation_failed == '0'
         run: |     
           # Ensure docs/index.md exists
           if [ ! -f "docs/index.md" ]; then
@@ -455,6 +575,14 @@ jobs:
           
           Check the [Submissions](submissions_index.md) page to see real-time validation status of all team submissions.
           
+          ## 📊 Live Statistics
+          
+          The dashboard shows real-time statistics including:
+          - Count of ML Track submissions (Open and Merged)
+          - Count of Dev Track submissions (Open and Merged) 
+          - Total submission counts
+          - Progress overview
+          
           ## 🚀 Getting Started
           
           1. Fork this repository
@@ -473,7 +601,7 @@ jobs:
           echo "Deploying MkDocs site..."
 
       - name: Deploy to GitHub Pages
-        if: always()
+        if: always() && env.validation_failed == '0'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
