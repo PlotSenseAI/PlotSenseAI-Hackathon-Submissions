@@ -551,13 +551,9 @@ jobs:
 
           EOF
           fi
-<<<<<<< HEAD
-      - name: Build and verify MkDocs site
-=======
           
       - name: Build and verify MkDocs site
         if: always() && env.validation_failed == '0'
->>>>>>> 4b2445f0afcfab81f27ee002ca28d57b2067ed36
         run: |     
           # Ensure docs/index.md exists
           if [ ! -f "docs/index.md" ]; then
