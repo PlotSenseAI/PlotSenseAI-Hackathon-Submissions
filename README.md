@@ -3,6 +3,10 @@
 
 Welcome to the **PlotSense Hackathon**! This repository hosts all templates, scripts, and submissions for the hackathon. Whether you're participating in the **ML Track** or the **Dev Track**, this README will guide you through the repo structure, contribution workflow, and useful resources.
 
+## Hackathon Submission Dashboard
+Access the live dashboard of submissions and their statuses here:
+[![Hackathon Dashboard](https://img.shields.io/badge/Dashboard-View%20Submissions-blue?logo=github)](https://plotsenseai.github.io/PlotSenseAI-Hackathon-Submissions/)
+
 ## 🗂 Repository Structure
 
 ```bash
