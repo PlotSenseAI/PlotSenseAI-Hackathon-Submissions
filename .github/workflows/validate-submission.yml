@@ -422,9 +422,19 @@ jobs:
             - admonition
             - pymdownx.details
             - pymdownx.superfences
+          
+          extra:
+            social:
+              - icon: fontawesome/brands/github
+                link: https://github.com/PlotSenseAI
+
+          plugins:
+            - search
+
           EOF
           fi
-          
+      - name: Build and verify MkDocs site
+        run: |     
           # Ensure docs/index.md exists
           if [ ! -f "docs/index.md" ]; then
               cat > docs/index.md << 'EOF'
@@ -468,4 +478,6 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./site
+          publish_branch: gh-pages
           force_orphan: true
+          keep_files: false
