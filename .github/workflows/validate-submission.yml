@@ -48,7 +48,7 @@ jobs:
           fi
 
           echo  "# Check PlotSense Hackathon Dashboard" >> $REPORT
-          echo "https://plotsenseai.github.io/PlotSenseAI-Submissions" >> $REPORT
+          echo "https://plotsenseai.github.io/PlotSenseAI-Submissions/" >> $REPORT
 
           # Detect track from track.txt file
           TRACK=""
