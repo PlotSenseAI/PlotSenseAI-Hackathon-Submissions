@@ -77,88 +77,110 @@ jobs:
           echo "" >> $REPORT
           echo "## Checklist Validation" >> $REPORT
 
-          ML_ITEMS=(
-            "notebooks:folder:*.ipynb"
-            "video-link.txt:file"
-            "README.md:file"
-            "docs:folder:*.md"
-            "requirements.txt:file"
-          )
+          # ONLY VALIDATE THE DETECTED TRACK
+          if [ "$TRACK" == "ML" ]; then
+              echo "### ML Track Requirements" >> $REPORT
+              ML_ITEMS=(
+                  "notebooks:folder:*.ipynb"
+                  "video-link.txt:file"
+                  "README.md:file"
+                  "docs:folder:*.md"
+                  "requirements.txt:file"
+              )
+              
+              for ITEM in "${ML_ITEMS[@]}"; do
+                  NAME=$(echo $ITEM | cut -d: -f1)
+                  TYPE=$(echo $ITEM | cut -d: -f2)
+                  PATTERN=$(echo $ITEM | cut -d: -f3)
 
-          echo "### ML Track" >> $REPORT
-          for ITEM in "${ML_ITEMS[@]}"; do
-            NAME=$(echo $ITEM | cut -d: -f1)
-            TYPE=$(echo $ITEM | cut -d: -f2)
-            PATTERN=$(echo $ITEM | cut -d: -f3)
+                  if [ "$TYPE" == "folder" ]; then
+                      if [ -d "$SUBMISSION/$NAME" ] && [ "$(ls -A $SUBMISSION/$NAME/$PATTERN 2>/dev/null)" ]; then
+                          echo "- ✅ $NAME present with required files" >> $REPORT
+                      elif [ ! -d "$SUBMISSION/$NAME" ]; then
+                          echo "- ❌ $NAME folder missing (create folder and add $PATTERN files)" >> $REPORT
+                          MISSING=1
+                      else
+                          echo "- ❌ $NAME folder exists but no $PATTERN files found" >> $REPORT
+                          MISSING=1
+                      fi
+                  else
+                      if [ -f "$SUBMISSION/$NAME" ]; then
+                          echo "- ✅ $NAME present" >> $REPORT
+                      else
+                          echo "- ❌ $NAME missing" >> $REPORT
+                          MISSING=1
+                      fi
+                  fi
+              done
+              
+              # Show Dev track requirements as reference (but don't validate)
+              echo "" >> $REPORT
+              echo "### Dev Track Requirements (for reference only)" >> $REPORT
+              echo "- 📋 src/ folder with *.py files" >> $REPORT
+              echo "- 📋 tests/ folder" >> $REPORT
+              echo "- 📋 docs/ folder with *.md files" >> $REPORT
+              echo "- 📋 requirements.txt file" >> $REPORT
+              echo "- 📋 video-link.txt file" >> $REPORT
+              echo "- 📋 README.md file" >> $REPORT
+              
+          else  # DEV track
+              echo "### Dev Track Requirements" >> $REPORT
+              DEV_ITEMS=(
+                  "src:folder:*.py"
+                  "tests:folder:*"
+                  "docs:folder:*.md"
+                  "requirements.txt:file"
+                  "video-link.txt:file"
+                  "README.md:file"
+              )
+              
+              for ITEM in "${DEV_ITEMS[@]}"; do
+                  NAME=$(echo $ITEM | cut -d: -f1)
+                  TYPE=$(echo $ITEM | cut -d: -f2)
+                  PATTERN=$(echo $ITEM | cut -d: -f3)
 
-            if [ "$TYPE" == "folder" ]; then
-              if [ -d "$SUBMISSION/$NAME" ] && [ "$(ls -A $SUBMISSION/$NAME/$PATTERN 2>/dev/null)" ]; then
-                echo "- ✅ $NAME present with required files" >> $REPORT
-              elif [ ! -d "$SUBMISSION/$NAME" ]; then
-                echo "- ❌ $NAME folder missing (create folder and add $PATTERN files)" >> $REPORT
-                MISSING=1
-              else
-                echo "- ❌ $NAME folder exists but no $PATTERN files found" >> $REPORT
-                MISSING=1
-              fi
-            else
-              if [ -f "$SUBMISSION/$NAME" ]; then
-                echo "- ✅ $NAME present" >> $REPORT
-              else
-                echo "- ❌ $NAME missing" >> $REPORT
-                MISSING=1
-              fi
-            fi
-          done
-
-          DEV_ITEMS=(
-            "src:folder:*.py"
-            "tests:folder:*"
-            "docs:folder:*.md"
-            "requirements.txt:file"
-            "video-link.txt:file"
-            "README.md:file"
-          )
-
-          echo "" >> $REPORT
-          echo "### Dev Track" >> $REPORT
-          for ITEM in "${DEV_ITEMS[@]}"; do
-            NAME=$(echo $ITEM | cut -d: -f1)
-            TYPE=$(echo $ITEM | cut -d: -f2)
-            PATTERN=$(echo $ITEM | cut -d: -f3)
-
-            if [ "$TYPE" == "folder" ]; then
-              if [ -d "$SUBMISSION/$NAME" ] && [ "$(ls -A $SUBMISSION/$NAME/$PATTERN 2>/dev/null)" ]; then
-                echo "- ✅ $NAME present with required files" >> $REPORT
-              else
-                echo "- ❌ $NAME missing or no $PATTERN files" >> $REPORT
-                MISSING=1
-              fi
-            else
-              if [ -f "$SUBMISSION/$NAME" ]; then
-                echo "- ✅ $NAME present" >> $REPORT
-              else
-                echo "- ❌ $NAME missing" >> $REPORT
-                MISSING=1
-              fi
-            fi
-          done
+                  if [ "$TYPE" == "folder" ]; then
+                      if [ -d "$SUBMISSION/$NAME" ] && [ "$(ls -A $SUBMISSION/$NAME/$PATTERN 2>/dev/null)" ]; then
+                          echo "- ✅ $NAME present with required files" >> $REPORT
+                      else
+                          echo "- ❌ $NAME missing or no $PATTERN files" >> $REPORT
+                          MISSING=1
+                      fi
+                  else
+                      if [ -f "$SUBMISSION/$NAME" ]; then
+                          echo "- ✅ $NAME present" >> $REPORT
+                      else
+                          echo "- ❌ $NAME missing" >> $REPORT
+                          MISSING=1
+                      fi
+                  fi
+              done
+              
+              # Show ML track requirements as reference (but don't validate)
+              echo "" >> $REPORT
+              echo "### ML Track Requirements (for reference only)" >> $REPORT
+              echo "- 📋 notebooks/ folder with *.ipynb files" >> $REPORT
+              echo "- 📋 video-link.txt file" >> $REPORT
+              echo "- 📋 README.md file" >> $REPORT
+              echo "- 📋 docs/ folder with *.md files" >> $REPORT
+              echo "- 📋 requirements.txt file" >> $REPORT
+          fi
 
           echo "" >> $REPORT
           if [ $MISSING -eq 0 ]; then
-            echo "✅ All required files present!" >> $REPORT
+              echo "✅ All required files present for $TRACK track!" >> $REPORT
           else
-            echo "❌ Some files are missing. See details above." >> $REPORT
-            echo "" >> $REPORT
-            echo "### Quick Fix Guide:" >> $REPORT
-            echo "1. Check which items are marked with ❌ above" >> $REPORT
-            echo "2. Create the missing files/folders in your submission" >> $REPORT
-            echo "3. Push your changes to trigger validation again" >> $REPORT
+              echo "❌ Some required files are missing for $TRACK track. See details above." >> $REPORT
+              echo "" >> $REPORT
+              echo "### Quick Fix Guide:" >> $REPORT
+              echo "1. Check which items are marked with ❌ above" >> $REPORT
+              echo "2. Create the missing files/folders in your submission" >> $REPORT
+              echo "3. Push your changes to trigger validation again" >> $REPORT
           fi
           
           # Store track, team folder, and validation result for later steps
           echo "submission_track=$TRACK" >> $GITHUB_ENV
-          echo "team_folder=$TEAM_FOLDER" >> $GITHUB_ENV
+          echo "team_folder=${GITHUB_HEAD_REF}" >> $GITHUB_ENV
           echo "validation_failed=$MISSING" >> $GITHUB_ENV
 
       - name: Run tests (Dev track)
