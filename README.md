@@ -18,11 +18,11 @@ Develop modules that add advanced analytical capabilities to PlotSenseAI's core 
 ## 📋 Submission Process
 
 ### Step 1: Fill the Submission Form
-- Complete the [Google Form](# "Form link will be provided") with:
+- Complete the [Google Form](https://forms.gle/pdBzSpuJ9iV3Tkhy8 "Open the submission form") with:
   - Project Title + Description
   - Contact Email
   - Social Profile Links (X/Twitter, and LinkedIn)
-- **Important:** You'll receive a unique User ID (e.g., `PSH2025-023`) after you've submitted the form. Copy and keep somewhere safe. It will be needed for the next steps below.
+- **Important:** You'll receive a unique User ID (e.g., `PSH2025-XXX`) after you've submitted the form. Copy and keep somewhere safe. It will be needed for the next steps below.
 
 ### Step 2: Create Your Project Repository
 Create a **public GitHub repository** with:
