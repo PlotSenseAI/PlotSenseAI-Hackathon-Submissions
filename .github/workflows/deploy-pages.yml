@@ -3,19 +3,15 @@ name: Deploy GitHub Pages
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
-    types: [closed]
   schedule:
     # Update every hour
     - cron: '0 * * * *'
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
-  actions: read
 
 concurrency:
   group: "pages"
@@ -24,18 +20,10 @@ concurrency:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
 
     - name: Setup Python
       uses: actions/setup-python@v4
@@ -53,10 +41,8 @@ jobs:
         import json
         import os
         import glob
-        import requests
         from pathlib import Path
         from datetime import datetime, timezone
-        import re
 
         def collect_submissions():
             """Collect all submission files and generate aggregated data"""
@@ -89,8 +75,8 @@ jobs:
                         else:
                             submission['tech_stack'] = ['JavaScript', 'PlotSenseAI', 'React', 'Node.js']
 
-                    # Set default status (in production, this would come from validation results)
-                    submission['status'] = 'pending'  # Default status
+                    # Set default status
+                    submission['status'] = 'pending'
 
                     # Validate required fields
                     required_fields = ['id', 'track', 'project_name', 'team_name', 'repo_url']
@@ -148,11 +134,11 @@ jobs:
                     size = len(submission['team_members'])
                     metrics['team_sizes'][str(size)] = metrics['team_sizes'].get(str(size), 0) + 1
 
-            # Submission timeline (group by date)
+            # Submission timeline
             timeline = {}
             for submission in submissions:
                 if 'submitted_date' in submission:
-                    date = submission['submitted_date'][:10]  # YYYY-MM-DD
+                    date = submission['submitted_date'][:10]
                     timeline[date] = timeline.get(date, 0) + 1
 
             metrics['submission_timeline'] = [{'date': date, 'count': count} for date, count in sorted(timeline.items())]
@@ -176,13 +162,10 @@ jobs:
 
         print(f"Processed {len(submissions)} submissions")
         print(f"Generated metrics: {metrics['total_submissions']} total submissions")
-
         EOF
 
     - name: Setup GitHub Pages
       uses: actions/configure-pages@v4
-      with:
-        enablement: true
 
     - name: Upload artifacts
       uses: actions/upload-pages-artifact@v3
@@ -192,54 +175,3 @@ jobs:
     - name: Deploy to GitHub Pages
       id: deployment
       uses: actions/deploy-pages@v4
-
-    - name: Update README with stats
-      if: github.ref == 'refs/heads/main'
-      run: |
-        python << 'EOF'
-        import json
-        import re
-
-        # Load metrics
-        try:
-            with open('docs/data/metrics.json', 'r') as f:
-                metrics = json.load(f)
-        except:
-            metrics = {'total_submissions': 0, 'total_teams': 0}
-
-        # Read current README
-        with open('README.md', 'r') as f:
-            readme = f.read()
-
-        # Update submission validation badge with stats
-        stats_line = f"![Total Submissions](https://img.shields.io/badge/Submissions-{metrics['total_submissions']}-blue) ![Teams](https://img.shields.io/badge/Teams-{metrics['total_teams']}-green)"
-
-        # Insert stats after the validation badge
-        pattern = r'(!\[Submission Validation\].*?\n)'
-        replacement = f'\\1{stats_line}\n'
-
-        new_readme = re.sub(pattern, replacement, readme)
-
-        # Write updated README
-        with open('README.md', 'w') as f:
-            f.write(new_readme)
-
-        print(f"Updated README with {metrics['total_submissions']} submissions")
-        EOF
-
-    - name: Commit updated README
-      if: github.ref == 'refs/heads/main'
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        if [[ -n $(git status --porcelain) ]]; then
-          git add README.md
-          git commit -m "📊 Update submission stats in README
-
-          🤖 Generated with Claude Code
-
-          Co-Authored-By: Claude <noreply@anthropic.com>"
-          git push
-        else
-          echo "No changes to commit"
-        fi
