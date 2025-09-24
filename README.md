@@ -5,6 +5,10 @@
 
 Welcome to the official submission repository for the **Plotsense Hackathon** hosted by **Havilah Academy**!
 
+## Hackathon Submission Dashboard
+Access the live dashboard of submissions and their statuses here:
+[![Hackathon Dashboard](https://img.shields.io/badge/Dashboard-View%20Submissions-blue?logo=github)](https://havilah-blockchain-studios.github.io/PlotSenseAI-Hackathon-Submissions/)
+
 ## 🏆 Prize Pool Breakdown
 
 💰 **Total Prize Pool: £600**
