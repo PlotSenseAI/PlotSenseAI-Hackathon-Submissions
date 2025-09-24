@@ -48,17 +48,17 @@ jobs:
               json_files = [f for f in (ml_files + dev_files) if f.name != "TEMPLATE.json"]
 
               if not json_files:
-                  return "❌ **No submission JSON file found**\n\nPlease add your submission JSON file to the appropriate track directory:\n- `submissions/plotsense-2025-ml/`\n- `submissions/plotsense-2025-dev/`"
+                  return "ERROR: **No submission JSON file found**\n\nPlease add your submission JSON file to the appropriate track directory:\n- `submissions/plotsense-2025-ml/`\n- `submissions/plotsense-2025-dev/`"
 
               if len(json_files) > 1:
-                  return f"❌ **Multiple submission files found: {[f.name for f in json_files]}**\n\nPlease submit only one JSON file per team."
+                  return f"ERROR: **Multiple submission files found: {[f.name for f in json_files]}**\n\nPlease submit only one JSON file per team."
 
               json_file = json_files[0]
               try:
                   with open(json_file, 'r') as f:
                       data = json.load(f)
               except json.JSONDecodeError as e:
-                  return f"❌ **Invalid JSON format in {json_file.name}**\n\nError: {str(e)}"
+                  return f"ERROR: **Invalid JSON format in {json_file.name}**\n\nError: {str(e)}"
 
               required_fields = {
                   'id': 'User ID (e.g., PSH2025-023)',
@@ -78,57 +78,57 @@ jobs:
               # Check required fields
               for field, desc in required_fields.items():
                   if field not in data or not data[field] or (isinstance(data[field], list) and not data[field]):
-                      results.append(f"❌ **{desc}** - Missing/empty: `{field}`")
+                      results.append(f"FAIL: **{desc}** - Missing/empty: `{field}`")
                       missing_fields.append(field)
                   else:
-                      results.append(f"✅ **{desc}** - Valid")
+                      results.append(f"PASS: **{desc}** - Valid")
 
               # User ID format
               if 'id' in data and data['id']:
                   if re.match(r'^PSH2025-\d{3}$', data['id']):
-                      validation_results.append("✅ **User ID format** - Valid")
+                      validation_results.append("PASS: **User ID format** - Valid")
                   else:
-                      validation_results.append(f"❌ **User ID format** - Invalid: `{data['id']}`")
+                      validation_results.append(f"FAIL: **User ID format** - Invalid: `{data['id']}`")
 
               # Track validation
               if 'track' in data and data['track'] in ["PlotSense ML", "PlotSense Dev"]:
-                  validation_results.append(f"✅ **Track** - {data['track']}")
+                  validation_results.append(f"PASS: **Track** - {data['track']}")
                   expected_dir = "plotsense-2025-ml" if data['track']=="PlotSense ML" else "plotsense-2025-dev"
                   if json_file.parent.name != expected_dir:
-                      validation_results.append(f"❌ **Track directory** - Should be in `{expected_dir}/`")
+                      validation_results.append(f"FAIL: **Track directory** - Should be in `{expected_dir}/`")
                   else:
-                      validation_results.append("✅ **Track directory** - Correct")
+                      validation_results.append("PASS: **Track directory** - Correct")
               else:
-                  validation_results.append("❌ **Track** - Invalid or missing")
+                  validation_results.append("FAIL: **Track** - Invalid or missing")
 
               # Repo URL
               if 'repo_url' in data and 'github.com' in data['repo_url']:
-                  validation_results.append("✅ **Repository URL** - Looks valid")
+                  validation_results.append("PASS: **Repository URL** - Looks valid")
               else:
-                  validation_results.append("❌ **Repository URL** - Invalid")
+                  validation_results.append("FAIL: **Repository URL** - Invalid")
 
               # Email
               if 'contact_email' in data and re.match(r'^[^@]+@[^@]+\.[^@]+$', data['contact_email']):
-                  validation_results.append("✅ **Email format** - Valid")
+                  validation_results.append("PASS: **Email format** - Valid")
               else:
-                  validation_results.append("❌ **Email format** - Invalid or missing")
+                  validation_results.append("FAIL: **Email format** - Invalid or missing")
 
               # Team members
               if isinstance(data.get('team_members', []), list) and all(isinstance(m, dict) and 'name' in m and 'role' in m for m in data['team_members']):
-                  validation_results.append(f"✅ **Team members** - {len(data['team_members'])} valid")
+                  validation_results.append(f"PASS: **Team members** - {len(data['team_members'])} valid")
               else:
-                  validation_results.append("❌ **Team members** - Invalid format")
+                  validation_results.append("FAIL: **Team members** - Invalid format")
 
               # Build report
-              report = "## 🤖 Submission Validation Results\n\n"
+              report = "## Submission Validation Results\n\n"
               report += f"**File:** `{json_file.name}`\n\n"
 
               if missing_fields:
-                  report += "### ❌ Validation Failed\n\n"
-              elif any("❌" in r for r in validation_results):
-                  report += "### ⚠️ Partial Validation\n\n"
+                  report += "### VALIDATION FAILED\n\n"
+              elif any("FAIL" in r for r in validation_results):
+                  report += "### PARTIAL VALIDATION\n\n"
               else:
-                  report += "### ✅ Validation Passed!\n\n"
+                  report += "### VALIDATION PASSED\n\n"
 
               report += "**Required Fields Check:**\n" + "\n".join(f"- {r}" for r in results) + "\n\n"
               report += "**Additional Validations:**\n" + "\n".join(f"- {r}" for r in validation_results) + "\n"
@@ -140,7 +140,7 @@ jobs:
           with open('validation_results.txt', 'w') as f:
               f.write(validation_report)
 
-          if "❌ Validation Failed" in validation_report or "⚠️ Partial Validation" in validation_report:
+          if "VALIDATION FAILED" in validation_report or "PARTIAL VALIDATION" in validation_report:
               print("Validation failed - check results")
               sys.exit(1)
           else:
@@ -159,7 +159,7 @@ jobs:
               const results = fs.readFileSync('validation_results.txt', 'utf8');
               comment = results;
             } catch (error) {
-              comment = '## 🤖 Submission Validation Results\n\n❌ **Validation failed to run properly. Please check the workflow logs.**\n\n';
+              comment = '## Submission Validation Results\n\nERROR: **Validation failed to run properly. Please check the workflow logs.**\n\n';
             }
 
             comment += '\n---\n*This is an automated check. Please ensure all requirements are met before requesting review.*';
@@ -172,7 +172,7 @@ jobs:
 
             const botComment = comments.data.find(comment =>
               comment.user.login === 'github-actions[bot]' &&
-              comment.body.includes('🤖 Submission Validation Results')
+              comment.body.includes('Submission Validation Results')
             );
 
             if (botComment) {
