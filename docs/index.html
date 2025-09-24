@@ -1,175 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PlotSense Hackathon 2025 - Submissions Dashboard</title>
-    <meta name="description" content="Official dashboard for PlotSense Hackathon 2025 submissions and metrics">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PlotSense Hackathon Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <header class="header">
-        <nav class="nav-container">
-            <div class="logo">
-                <i class="fas fa-chart-line"></i>
-                <span>PlotSense Hackathon 2025</span>
-            </div>
-            <div class="nav-links">
-                <a href="#overview" class="nav-link">Overview</a>
-                <a href="#submissions" class="nav-link">Submissions</a>
-                <a href="#metrics" class="nav-link">Metrics</a>
-                <a href="#leaderboard" class="nav-link">Leaderboard</a>
-            </div>
-            <a href="https://github.com/Havilah-Blockchain-Studios/PlotSenseAI-Hackathon-Submissions" class="github-link" target="_blank">
-                <i class="fab fa-github"></i>
-                GitHub
-            </a>
-        </nav>
-    </header>
+  <header>
+    <h1>📊 PlotSense Hackathon Dashboard</h1>
+    <p>Live stats for submissions, teams, and activity</p>
+  </header>
 
-    <main class="main-content">
-        <!-- Hero Section -->
-        <section class="hero" id="overview">
-            <div class="hero-content">
-                <div class="hero-text">
-                    <h1>PlotSense Hackathon 2025</h1>
-                    <p class="hero-subtitle">Official Submissions Dashboard</p>
-                    <p class="hero-description">Track submissions, view project showcases, and explore real-time metrics for the PlotSense AI Hackathon hosted by Havilah Academy.</p>
-                    <div class="hero-stats">
-                        <div class="stat-card">
-                            <div class="stat-number" id="total-submissions">0</div>
-                            <div class="stat-label">Total Submissions</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-number" id="total-teams">0</div>
-                            <div class="stat-label">Active Teams</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-number">£600</div>
-                            <div class="stat-label">Prize Pool</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-number">2</div>
-                            <div class="stat-label">Tracks</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="hero-visual">
-                    <canvas id="trackDistributionChart" width="300" height="300"></canvas>
-                </div>
-            </div>
-        </section>
+  <main>
+    <section class="metrics-grid">
+      <div class="metric-card">
+        <h2 id="total-submissions">0</h2>
+        <p>Total Submissions</p>
+      </div>
+      <div class="metric-card">
+        <h2 id="total-teams">0</h2>
+        <p>Total Teams</p>
+      </div>
+      <div class="metric-card">
+        <h2 id="validated-count">0</h2>
+        <p>Validated</p>
+      </div>
+      <div class="metric-card">
+        <h2 id="pending-count">0</h2>
+        <p>Pending</p>
+      </div>
+    </section>
 
-        <!-- Submissions Section -->
-        <section class="submissions-section" id="submissions">
-            <div class="container">
-                <h2>Project Submissions</h2>
-                <div class="track-filters">
-                    <button class="filter-btn active" data-track="all">All Tracks</button>
-                    <button class="filter-btn" data-track="PlotSense ML">ML Track (£200)</button>
-                    <button class="filter-btn" data-track="PlotSense Dev">Dev Track (£400)</button>
-                </div>
-                <div class="submissions-grid" id="submissions-grid">
-                    <!-- Submissions will be dynamically loaded here -->
-                </div>
-            </div>
-        </section>
+    <section class="charts-grid">
+      <div class="chart-card">
+        <h3>Submissions by Track</h3>
+        <canvas id="trackChart"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Tech Stack Usage</h3>
+        <canvas id="techChart"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Team Sizes</h3>
+        <canvas id="teamChart"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Submission Timeline</h3>
+        <canvas id="timelineChart"></canvas>
+      </div>
+    </section>
+  </main>
 
-        <!-- Metrics Section -->
-        <section class="metrics-section" id="metrics">
-            <div class="container">
-                <h2>Hackathon Metrics</h2>
-                <div class="metrics-grid">
-                    <div class="metric-card">
-                        <h3>Submission Timeline</h3>
-                        <canvas id="submissionTimelineChart"></canvas>
-                    </div>
-                    <div class="metric-card">
-                        <h3>Technology Stack Distribution</h3>
-                        <canvas id="techStackChart"></canvas>
-                    </div>
-                    <div class="metric-card">
-                        <h3>Team Size Distribution</h3>
-                        <canvas id="teamSizeChart"></canvas>
-                    </div>
-                    <div class="metric-card">
-                        <h3>Submission Status</h3>
-                        <div class="status-metrics">
-                            <div class="status-item">
-                                <span class="status-dot validated"></span>
-                                <span class="status-label">Validated: <span id="validated-count">0</span></span>
-                            </div>
-                            <div class="status-item">
-                                <span class="status-dot pending"></span>
-                                <span class="status-label">Pending: <span id="pending-count">0</span></span>
-                            </div>
-                            <div class="status-item">
-                                <span class="status-dot failed"></span>
-                                <span class="status-label">Failed: <span id="failed-count">0</span></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+  <footer>
+    <p>Updated automatically every hour · Built with ❤️ for PlotSense Hackathon</p>
+  </footer>
 
-        <!-- Leaderboard Section -->
-        <section class="leaderboard-section" id="leaderboard">
-            <div class="container">
-                <h2>Community Leaderboard</h2>
-                <div class="leaderboard-tabs">
-                    <button class="tab-btn active" data-tab="engagement">Social Engagement</button>
-                    <button class="tab-btn" data-tab="innovation">Innovation Score</button>
-                    <button class="tab-btn" data-tab="completion">Completion Rate</button>
-                </div>
-                <div class="leaderboard-content" id="leaderboard-content">
-                    <!-- Leaderboard will be dynamically loaded -->
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>PlotSense Hackathon 2025</h3>
-                    <p>Hosted by Havilah Academy</p>
-                    <div class="social-links">
-                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-linkedin"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-discord"></i></a>
-                    </div>
-                </div>
-                <div class="footer-section">
-                    <h4>Quick Links</h4>
-                    <ul>
-                        <li><a href="https://github.com/Havilah-Blockchain-Studios/PlotSenseAI-Hackathon-Submissions">Submit Project</a></li>
-                        <li><a href="#submissions">View Submissions</a></li>
-                        <li><a href="#metrics">Metrics Dashboard</a></li>
-                        <li><a href="#leaderboard">Leaderboard</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>Resources</h4>
-                    <ul>
-                        <li><a href="https://github.com/Havilah-Blockchain-Studios/PlotSenseAI-Hackathon-Submissions/blob/main/SUBMISSION_GUIDE.md">Submission Guide</a></li>
-                        <li><a href="https://github.com/Havilah-Blockchain-Studios/PlotSenseAI-Hackathon-Submissions/blob/main/README.md">Documentation</a></li>
-                        <li><a href="#">API Reference</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2025 Havilah Academy. Shalom with love! 🚀</p>
-                <p class="footer-note">Real-time data updates every 5 minutes • Last updated: <span id="last-updated"></span></p>
-            </div>
-        </div>
-    </footer>
-
-    <script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
