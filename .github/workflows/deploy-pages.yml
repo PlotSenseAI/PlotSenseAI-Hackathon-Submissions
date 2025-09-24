@@ -12,9 +12,10 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
+  actions: read
 
 concurrency:
   group: "pages"
@@ -180,6 +181,8 @@ jobs:
 
     - name: Setup GitHub Pages
       uses: actions/configure-pages@v4
+      with:
+        enablement: true
 
     - name: Upload artifacts
       uses: actions/upload-pages-artifact@v3
