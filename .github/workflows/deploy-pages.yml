@@ -8,11 +8,6 @@ on:
     - cron: '0 * * * *'
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
 concurrency:
   group: "pages"
   cancel-in-progress: false
@@ -20,22 +15,25 @@ concurrency:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
     - name: Setup Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v4
       with:
-        python-version: '3.11'
+        python-version: '3.9'
 
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
+        pip install requests python-dateutil
 
     - name: Generate submission data
       run: |
@@ -47,10 +45,7 @@ jobs:
         from datetime import datetime, timezone
 
         def collect_submissions():
-            """Collect all submission files and generate aggregated data"""
             submissions = []
-
-            # Find all JSON submission files
             submission_files = []
             for track_dir in ['submissions/plotsense-2025-ml', 'submissions/plotsense-2025-dev']:
                 if os.path.exists(track_dir):
@@ -63,24 +58,19 @@ jobs:
                     with open(file_path, 'r') as f:
                         submission = json.load(f)
 
-                    # Add file metadata
                     file_stat = os.stat(file_path)
                     submission['submitted_date'] = datetime.fromtimestamp(
                         file_stat.st_mtime, tz=timezone.utc
                     ).isoformat()
                     submission['file_path'] = file_path
 
-                    # Infer tech stack from project description or default
                     if 'tech_stack' not in submission:
                         if submission.get('track') == 'PlotSense ML':
                             submission['tech_stack'] = ['Python', 'PlotSenseAI', 'Pandas', 'Scikit-learn']
                         else:
                             submission['tech_stack'] = ['JavaScript', 'PlotSenseAI', 'React', 'Node.js']
 
-                    # Set default status
                     submission['status'] = 'pending'
-
-                    # Validate required fields
                     required_fields = ['id', 'track', 'project_name', 'team_name', 'repo_url']
                     if all(field in submission and submission[field] for field in required_fields):
                         submission['status'] = 'validated'
@@ -94,7 +84,6 @@ jobs:
             return submissions
 
         def generate_metrics(submissions):
-            """Generate metrics and statistics"""
             if not submissions:
                 return {
                     'total_submissions': 0,
@@ -116,27 +105,22 @@ jobs:
                 'submission_timeline': []
             }
 
-            # Count tracks
             for track in ['PlotSense ML', 'PlotSense Dev']:
                 metrics['tracks'][track] = len([s for s in submissions if s.get('track') == track])
 
-            # Count statuses
             for status in ['validated', 'pending', 'failed']:
                 metrics['status_counts'][status] = len([s for s in submissions if s.get('status') == status])
 
-            # Tech stack usage
             for submission in submissions:
                 if 'tech_stack' in submission:
                     for tech in submission['tech_stack']:
                         metrics['tech_stack_usage'][tech] = metrics['tech_stack_usage'].get(tech, 0) + 1
 
-            # Team sizes
             for submission in submissions:
                 if 'team_members' in submission:
                     size = len(submission['team_members'])
                     metrics['team_sizes'][str(size)] = metrics['team_sizes'].get(str(size), 0) + 1
 
-            # Submission timeline
             timeline = {}
             for submission in submissions:
                 if 'submitted_date' in submission:
@@ -147,18 +131,14 @@ jobs:
 
             return metrics
 
-        # Main execution
         submissions = collect_submissions()
         metrics = generate_metrics(submissions)
 
-        # Create output directory
         os.makedirs('docs/data', exist_ok=True)
 
-        # Write submissions data
         with open('docs/data/submissions.json', 'w') as f:
             json.dump(submissions, f, indent=2, default=str)
 
-        # Write metrics data
         with open('docs/data/metrics.json', 'w') as f:
             json.dump(metrics, f, indent=2, default=str)
 
@@ -170,7 +150,7 @@ jobs:
       uses: actions/configure-pages@v4
 
     - name: Upload artifacts
-      uses: actions/upload-pages-artifact@v4
+      uses: actions/upload-pages-artifact@v3
       with:
         path: 'docs'
 
