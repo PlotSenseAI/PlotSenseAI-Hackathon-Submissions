@@ -1,0 +1,159 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  schedule:
+    # Update every hour
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests python-dateutil
+
+    - name: Generate submission data
+      run: |
+        python << 'EOF'
+        import json
+        import os
+        import glob
+        from pathlib import Path
+        from datetime import datetime, timezone
+
+        def collect_submissions():
+            submissions = []
+            submission_files = []
+            for track_dir in ['submissions/plotsense-2025-ml', 'submissions/plotsense-2025-dev']:
+                if os.path.exists(track_dir):
+                    for file_path in glob.glob(f"{track_dir}/*.json"):
+                        if not file_path.endswith('TEMPLATE.json'):
+                            submission_files.append(file_path)
+
+            for file_path in submission_files:
+                try:
+                    with open(file_path, 'r') as f:
+                        submission = json.load(f)
+
+                    file_stat = os.stat(file_path)
+                    submission['submitted_date'] = datetime.fromtimestamp(
+                        file_stat.st_mtime, tz=timezone.utc
+                    ).isoformat()
+                    submission['file_path'] = file_path
+
+                    if 'tech_stack' not in submission:
+                        if submission.get('track') == 'PlotSense ML':
+                            submission['tech_stack'] = ['Python', 'PlotSenseAI', 'Pandas', 'Scikit-learn']
+                        else:
+                            submission['tech_stack'] = ['JavaScript', 'PlotSenseAI', 'React', 'Node.js']
+
+                    submission['status'] = 'pending'
+                    required_fields = ['id', 'track', 'project_name', 'team_name', 'repo_url']
+                    if all(field in submission and submission[field] for field in required_fields):
+                        submission['status'] = 'validated'
+
+                    submissions.append(submission)
+
+                except (json.JSONDecodeError, FileNotFoundError) as e:
+                    print(f"Error processing {file_path}: {e}")
+                    continue
+
+            return submissions
+
+        def generate_metrics(submissions):
+            if not submissions:
+                return {
+                    'total_submissions': 0,
+                    'total_teams': 0,
+                    'tracks': {'PlotSense ML': 0, 'PlotSense Dev': 0},
+                    'status_counts': {'validated': 0, 'pending': 0, 'failed': 0},
+                    'tech_stack_usage': {},
+                    'team_sizes': {},
+                    'submission_timeline': []
+                }
+
+            metrics = {
+                'total_submissions': len(submissions),
+                'total_teams': len(submissions),
+                'tracks': {},
+                'status_counts': {'validated': 0, 'pending': 0, 'failed': 0},
+                'tech_stack_usage': {},
+                'team_sizes': {},
+                'submission_timeline': []
+            }
+
+            for track in ['PlotSense ML', 'PlotSense Dev']:
+                metrics['tracks'][track] = len([s for s in submissions if s.get('track') == track])
+
+            for status in ['validated', 'pending', 'failed']:
+                metrics['status_counts'][status] = len([s for s in submissions if s.get('status') == status])
+
+            for submission in submissions:
+                if 'tech_stack' in submission:
+                    for tech in submission['tech_stack']:
+                        metrics['tech_stack_usage'][tech] = metrics['tech_stack_usage'].get(tech, 0) + 1
+
+            for submission in submissions:
+                if 'team_members' in submission:
+                    size = len(submission['team_members'])
+                    metrics['team_sizes'][str(size)] = metrics['team_sizes'].get(str(size), 0) + 1
+
+            timeline = {}
+            for submission in submissions:
+                if 'submitted_date' in submission:
+                    date = submission['submitted_date'][:10]
+                    timeline[date] = timeline.get(date, 0) + 1
+
+            metrics['submission_timeline'] = [{'date': date, 'count': count} for date, count in sorted(timeline.items())]
+
+            return metrics
+
+        submissions = collect_submissions()
+        metrics = generate_metrics(submissions)
+
+        os.makedirs('docs/data', exist_ok=True)
+
+        with open('docs/data/submissions.json', 'w') as f:
+            json.dump(submissions, f, indent=2, default=str)
+
+        with open('docs/data/metrics.json', 'w') as f:
+            json.dump(metrics, f, indent=2, default=str)
+
+        print(f"Processed {len(submissions)} submissions")
+        print(f"Generated metrics: {metrics['total_submissions']} total submissions")
+        EOF
+
+    - name: Setup GitHub Pages
+      uses: actions/configure-pages@v4
+
+    - name: Upload artifacts
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: 'docs'
+
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4

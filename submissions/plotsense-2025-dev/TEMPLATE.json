@@ -1,0 +1,18 @@
+{
+  "id": "PSH2025-XXX",
+  "track": "PlotSense Dev",
+  "project_name": "Your Dev Project Name",
+  "team_name": "Your Team Name",
+  "repo_url": "https://github.com/yourteam/plotsenseai-hackathon-PSH2025-XXX",
+  "video_url": "https://youtube.com/your-demo-video",
+  "social_links": [
+    "https://x.com/yourteam/status/12345",
+    "https://linkedin.com/posts/yourteam_plotsense-hackathon"
+  ],
+  "discord_handle": "yourhandle#1234",
+  "contact_email": "yourteam@example.com",
+  "team_members": [
+    { "name": "Member 1", "role": "Fullstack Developer" },
+    { "name": "Member 2", "role": "AI Researcher" }
+  ]
+}
