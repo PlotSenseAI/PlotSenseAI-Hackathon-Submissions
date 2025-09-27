@@ -1,614 +1,192 @@
-name: Validate Hackathon Submission
+name: Validate Submission
 
 on:
   pull_request:
-    branches:
-      - submissions
+    branches: [review]
+    paths:
+      - "submissions/plotsense-2025-ml/*.json"
+      - "submissions/plotsense-2025-dev/*.json"
 
 jobs:
   validate:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read # checkout code
+      pull-requests: write # comment on PR
+      issues: write # update PR comments
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
-          python-version: "3.10.*"
+          python-version: "3.9"
 
       - name: Install dependencies
         run: |
-          pip install -r templates/ml_requirements.txt || echo "ML track not found"
-          pip install -r templates/dev_template/requirements.txt || echo "Dev track not found"
-          pip install -e ./libs/plotsense
-          pip install -r ./libs/plotsense/requirements.txt
+          python -m pip install --upgrade pip
+          pip install jsonschema requests
 
-      - name: Validate submission checklist & generate report
+      - name: Validate submission
         run: |
-          SUBMISSION="submissions/${GITHUB_HEAD_REF}"
-          REPORT="submission_report.md"
-          MISSING=0
+          python << 'EOF'
+          import json
+          import os
+          import re
+          import sys
+          from pathlib import Path
 
-          echo "# Submission Validation Report" > $REPORT
-          echo "Team branch: $GITHUB_HEAD_REF" >> $REPORT
-          echo "" >> $REPORT
+          def validate_submission():
+              ml_dir = Path("submissions/plotsense-2025-ml")
+              dev_dir = Path("submissions/plotsense-2025-dev")
 
-          # Team folder Check
-          echo "## Team folder Check" >> $REPORT
-          echo "- Submission path: $SUBMISSION" >> $REPORT
-          if [ ! -d "$SUBMISSION" ]; then
-            echo "❌ Submission folder '$SUBMISSION' does not exist." >> $REPORT
-            echo "" >> $REPORT
-            echo "Please ensure your PR is made against the 'submissions' branch and the folder name matches your team name." >> $REPORT
-            MISSING=1
-            echo "validation_failed=1" >> $GITHUB_ENV
-            exit 0
-          fi
+              ml_files = list(ml_dir.glob("*.json")) if ml_dir.exists() else []
+              dev_files = list(dev_dir.glob("*.json")) if dev_dir.exists() else []
+              json_files = [f for f in (ml_files + dev_files) if f.name != "TEMPLATE.json"]
 
-          echo  "# Check PlotSense Hackathon Dashboard" >> $REPORT
-          echo "https://plotsenseai.github.io/PlotSenseAI-Submissions/" >> $REPORT
+              if not json_files:
+                  return "ERROR: **No submission JSON file found**\n\nPlease add your submission JSON file to the appropriate track directory:\n- `submissions/plotsense-2025-ml/`\n- `submissions/plotsense-2025-dev/`"
 
-          # Detect track from track.txt file
-          TRACK=""
-          if [ -f "$SUBMISSION/track.txt" ]; then
-            TRACK=$(cat "$SUBMISSION/track.txt" | tr '[:lower:]' '[:upper:]' | tr -d '[:space:]')
-            if [ "$TRACK" != "ML" ] && [ "$TRACK" != "DEV" ]; then
-              echo "## Track Detection" >> $REPORT
-              echo "❌ Invalid track specified in track.txt: '$TRACK'" >> $REPORT
-              echo "" >> $REPORT
-              echo "The track.txt file must contain either 'ML' or 'DEV' (case insensitive)" >> $REPORT
-              MISSING=1
-              echo "validation_failed=1" >> $GITHUB_ENV
-              exit 0
-            fi
-          else
-            echo "## Track Detection" >> $REPORT
-            echo "❌ track.txt file missing" >> $REPORT
-            echo "" >> $REPORT
-            echo "Please create a track.txt file in your submission folder containing either:" >> $REPORT
-            echo "- 'ML' (for Machine Learning track)" >> $REPORT  
-            echo "- 'DEV' (for Development track)" >> $REPORT
-            MISSING=1
-            echo "validation_failed=1" >> $GITHUB_ENV
-            exit 0
-          fi
+              if len(json_files) > 1:
+                  return f"ERROR: **Multiple submission files found: {[f.name for f in json_files]}**\n\nPlease submit only one JSON file per team."
 
-          echo "## Track Detection" >> $REPORT
-          echo "✅ Detected as **${TRACK} Track** submission (from track.txt)" >> $REPORT
-          echo "" >> $REPORT
-          echo "## Checklist Validation" >> $REPORT
+              json_file = json_files[0]
+              try:
+                  with open(json_file, 'r') as f:
+                      data = json.load(f)
+              except json.JSONDecodeError as e:
+                  return f"ERROR: **Invalid JSON format in {json_file.name}**\n\nError: {str(e)}"
 
-          # ONLY VALIDATE THE DETECTED TRACK
-          if [ "$TRACK" == "ML" ]; then
-              echo "### ML Track Requirements" >> $REPORT
-              ML_ITEMS=(
-                  "notebooks:folder:*.ipynb"
-                  "video-link.txt:file"
-                  "README.md:file"
-                  "docs:folder:*.md"
-                  "requirements.txt:file"
-              )
-              
-              for ITEM in "${ML_ITEMS[@]}"; do
-                  NAME=$(echo $ITEM | cut -d: -f1)
-                  TYPE=$(echo $ITEM | cut -d: -f2)
-                  PATTERN=$(echo $ITEM | cut -d: -f3)
+              required_fields = {
+                  'id': 'User ID (e.g., PSH2025-023)',
+                  'track': 'Track (PlotSense ML or PlotSense Dev)',
+                  'project_name': 'Project name',
+                  'team_name': 'Team name',
+                  'repo_url': 'Repository URL',
+                  'video_url': 'Demo video URL',
+                  'social_links': 'Social media links',
+                  'discord_handle': 'Discord handle',
+                  'contact_email': 'Contact email',
+                  'team_members': 'Team members list'
+              }
 
-                  if [ "$TYPE" == "folder" ]; then
-                      if [ -d "$SUBMISSION/$NAME" ] && [ "$(ls -A $SUBMISSION/$NAME/$PATTERN 2>/dev/null)" ]; then
-                          echo "- ✅ $NAME present with required files" >> $REPORT
-                      elif [ ! -d "$SUBMISSION/$NAME" ]; then
-                          echo "- ❌ $NAME folder missing (create folder and add $PATTERN files)" >> $REPORT
-                          MISSING=1
-                      else
-                          echo "- ❌ $NAME folder exists but no $PATTERN files found" >> $REPORT
-                          MISSING=1
-                      fi
-                  else
-                      if [ -f "$SUBMISSION/$NAME" ]; then
-                          echo "- ✅ $NAME present" >> $REPORT
-                      else
-                          echo "- ❌ $NAME missing" >> $REPORT
-                          MISSING=1
-                      fi
-                  fi
-              done
-              
-              # Show Dev track requirements as reference (but don't validate)
-              echo "" >> $REPORT
-              echo "### Dev Track Requirements (for reference only)" >> $REPORT
-              echo "- 📋 src/ folder with *.py files" >> $REPORT
-              echo "- 📋 tests/ folder" >> $REPORT
-              echo "- 📋 docs/ folder with *.md files" >> $REPORT
-              echo "- 📋 requirements.txt file" >> $REPORT
-              echo "- 📋 video-link.txt file" >> $REPORT
-              echo "- 📋 README.md file" >> $REPORT
-              
-          else  # DEV track
-              echo "### Dev Track Requirements" >> $REPORT
-              DEV_ITEMS=(
-                  "src:folder:*.py"
-                  "tests:folder:*"
-                  "docs:folder:*.md"
-                  "requirements.txt:file"
-                  "video-link.txt:file"
-                  "README.md:file"
-              )
-              
-              for ITEM in "${DEV_ITEMS[@]}"; do
-                  NAME=$(echo $ITEM | cut -d: -f1)
-                  TYPE=$(echo $ITEM | cut -d: -f2)
-                  PATTERN=$(echo $ITEM | cut -d: -f3)
+              results, missing_fields, validation_results = [], [], []
 
-                  if [ "$TYPE" == "folder" ]; then
-                      if [ -d "$SUBMISSION/$NAME" ] && [ "$(ls -A $SUBMISSION/$NAME/$PATTERN 2>/dev/null)" ]; then
-                          echo "- ✅ $NAME present with required files" >> $REPORT
-                      else
-                          echo "- ❌ $NAME missing or no $PATTERN files" >> $REPORT
-                          MISSING=1
-                      fi
-                  else
-                      if [ -f "$SUBMISSION/$NAME" ]; then
-                          echo "- ✅ $NAME present" >> $REPORT
-                      else
-                          echo "- ❌ $NAME missing" >> $REPORT
-                          MISSING=1
-                      fi
-                  fi
-              done
-              
-              # Show ML track requirements as reference (but don't validate)
-              echo "" >> $REPORT
-              echo "### ML Track Requirements (for reference only)" >> $REPORT
-              echo "- 📋 notebooks/ folder with *.ipynb files" >> $REPORT
-              echo "- 📋 video-link.txt file" >> $REPORT
-              echo "- 📋 README.md file" >> $REPORT
-              echo "- 📋 docs/ folder with *.md files" >> $REPORT
-              echo "- 📋 requirements.txt file" >> $REPORT
-          fi
+              # Check required fields
+              for field, desc in required_fields.items():
+                  if field not in data or not data[field] or (isinstance(data[field], list) and not data[field]):
+                      results.append(f"FAIL: **{desc}** - Missing/empty: `{field}`")
+                      missing_fields.append(field)
+                  else:
+                      results.append(f"PASS: **{desc}** - Valid")
 
-          echo "" >> $REPORT
-          if [ $MISSING -eq 0 ]; then
-              echo "✅ All required files present for $TRACK track!" >> $REPORT
-          else
-              echo "❌ Some required files are missing for $TRACK track. See details above." >> $REPORT
-              echo "" >> $REPORT
-              echo "### Quick Fix Guide:" >> $REPORT
-              echo "1. Check which items are marked with ❌ above" >> $REPORT
-              echo "2. Create the missing files/folders in your submission" >> $REPORT
-              echo "3. Push your changes to trigger validation again" >> $REPORT
-          fi
-          
-          # Store track, team folder, and validation result for later steps
-          echo "submission_track=$TRACK" >> $GITHUB_ENV
-          echo "team_folder=${GITHUB_HEAD_REF}" >> $GITHUB_ENV
-          echo "validation_failed=$MISSING" >> $GITHUB_ENV
+              # User ID format
+              if 'id' in data and data['id']:
+                  if re.match(r'^PSH2025-\d{3}$', data['id']):
+                      validation_results.append("PASS: **User ID format** - Valid")
+                  else:
+                      validation_results.append(f"FAIL: **User ID format** - Invalid: `{data['id']}`")
 
-      - name: Run tests (Dev track)
-        continue-on-error: true
-        if: env.submission_track == 'DEV'
-        run: |
-          TESTS="submissions/${{ env.team_folder }}/tests"
-          if [ -d "$TESTS" ]; then
-            echo "" >> submission_report.md
-            echo "## Dev Track Test Results" >> submission_report.md
-            pytest $TESTS --maxfail=1 --disable-warnings --tb=short || echo "- ❌ Some tests failed" >> submission_report.md
-          else
-            echo "" >> submission_report.md
-            echo "## Dev Track Test Results" >> submission_report.md
-            echo "- ⚠️ No tests folder found" >> submission_report.md
-          fi
+              # Track validation
+              if 'track' in data and data['track'] in ["PlotSense ML", "PlotSense Dev"]:
+                  validation_results.append(f"PASS: **Track** - {data['track']}")
+                  expected_dir = "plotsense-2025-ml" if data['track']=="PlotSense ML" else "plotsense-2025-dev"
+                  if json_file.parent.name != expected_dir:
+                      validation_results.append(f"FAIL: **Track directory** - Should be in `{expected_dir}/`")
+                  else:
+                      validation_results.append("PASS: **Track directory** - Correct")
+              else:
+                  validation_results.append("FAIL: **Track** - Invalid or missing")
 
-      - name: Run notebooks (ML track)
-        continue-on-error: true
-        if: env.submission_track == 'ML'
-        run: |
-          NOTEBOOKS="submissions/${{ env.team_folder }}/notebooks"
-          if [ -d "$NOTEBOOKS" ]; then
-            echo "" >> submission_report.md
-            echo "## ML Track Notebook Execution" >> submission_report.md
-            for nb in $NOTEBOOKS/*.ipynb; do
-              jupyter nbconvert --to notebook --execute $nb --inplace && echo "- ✅ Notebook $(basename $nb) executed successfully" >> submission_report.md || echo "- ❌ Notebook $(basename $nb) failed" >> submission_report.md
-            done
-          else
-            echo "" >> submission_report.md
-            echo "## ML Track Notebook Execution" >> submission_report.md
-            echo "- ⚠️ No notebooks folder found" >> submission_report.md
-          fi
+              # Repo URL
+              if 'repo_url' in data and 'github.com' in data['repo_url']:
+                  validation_results.append("PASS: **Repository URL** - Looks valid")
+              else:
+                  validation_results.append("FAIL: **Repository URL** - Invalid")
 
-      - name: Upload submission report
-        uses: actions/upload-artifact@v4
-        with:
-          name: submission-report
-          path: submission_report.md
+              # Email
+              if 'contact_email' in data and re.match(r'^[^@]+@[^@]+\.[^@]+$', data['contact_email']):
+                  validation_results.append("PASS: **Email format** - Valid")
+              else:
+                  validation_results.append("FAIL: **Email format** - Invalid or missing")
 
-      - name: Comment validation results on PR
+              # Team members
+              if isinstance(data.get('team_members', []), list) and all(isinstance(m, dict) and 'name' in m and 'role' in m for m in data['team_members']):
+                  validation_results.append(f"PASS: **Team members** - {len(data['team_members'])} valid")
+              else:
+                  validation_results.append("FAIL: **Team members** - Invalid format")
+
+              # Build report
+              report = "## Submission Validation Results\n\n"
+              report += f"**File:** `{json_file.name}`\n\n"
+
+              if missing_fields:
+                  report += "### VALIDATION FAILED\n\n"
+              elif any("FAIL" in r for r in validation_results):
+                  report += "### PARTIAL VALIDATION\n\n"
+              else:
+                  report += "### VALIDATION PASSED\n\n"
+
+              report += "**Required Fields Check:**\n" + "\n".join(f"- {r}" for r in results) + "\n\n"
+              report += "**Additional Validations:**\n" + "\n".join(f"- {r}" for r in validation_results) + "\n"
+
+              return report
+
+          validation_report = validate_submission()
+
+          with open('validation_results.txt', 'w') as f:
+              f.write(validation_report)
+
+          if "VALIDATION FAILED" in validation_report or "PARTIAL VALIDATION" in validation_report:
+              print("Validation failed - check results")
+              sys.exit(1)
+          else:
+              print("Validation passed!")
+          EOF
+
+      - name: Comment on PR
         if: always()
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
-            const report = fs.readFileSync('submission_report.md', 'utf8');
-            
-            // Find existing bot comment
+
+            let comment = '';
+            try {
+              const results = fs.readFileSync('validation_results.txt', 'utf8');
+              comment = results;
+            } catch (error) {
+              comment = '## Submission Validation Results\n\nERROR: **Validation failed to run properly. Please check the workflow logs.**\n\n';
+            }
+
+            comment += '\n---\n*This is an automated check. Please ensure all requirements are met before requesting review.*';
+
             const comments = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number
             });
-            
-            const botComment = comments.data.find(comment => 
-              comment.user.login === 'github-actions[bot]' && 
-              comment.body.includes('# Submission Validation Report')
+
+            const botComment = comments.data.find(comment =>
+              comment.user.login === 'github-actions[bot]' &&
+              comment.body.includes('Submission Validation Results')
             );
-            
+
             if (botComment) {
-              // Update existing comment
               await github.rest.issues.updateComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 comment_id: botComment.id,
-                body: report
+                body: comment
               });
             } else {
-              // Create new comment
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
-                body: report
+                body: comment
               });
             }
-
-      - name: Block merge if checklist failed
-        if: env.validation_failed == '1'
-        run: |
-          echo "❌ Submission checklist failed - PR cannot be merged until all requirements are met"
-          echo "Check the PR comment for detailed validation report"
-          exit 1
-
-      - name: Update MkDocs submission index with summary statistics
-        if: always() && env.validation_failed == '0'
-        run: |
-          # Install additional Python packages for MkDocs integration
-          pip install PyGithub python-dotenv
-          
-          # Create enhanced Python script for submission tracking
-          cat > update_submissions.py << 'EOF'
-          import os
-          import json
-          from datetime import datetime
-          from github import Github
-          
-          TOKEN = "${{ secrets.GITHUB_TOKEN }}"
-          REPO_NAME = "${{ github.repository }}"
-          SUBMISSIONS_BRANCH = "submissions"
-          
-          g = Github(TOKEN)
-          repo = g.get_repo(REPO_NAME)
-          
-          # Get current PR info if available
-          current_pr = None
-          if "${{ github.event_name }}" == "pull_request":
-              current_pr_number = ${{ github.event.number }}
-              current_pr = repo.get_pull(current_pr_number)
-          
-          # Get only open and merged PRs (filter out closed without merge)
-          all_pulls = list(repo.get_pulls(state='all', base=SUBMISSIONS_BRANCH, sort='updated', direction='desc'))
-          
-          # Filter: only include open PRs and merged PRs
-          filtered_pulls = []
-          for pr in all_pulls:
-              if pr.state == 'open' or pr.merged:
-                  filtered_pulls.append(pr)
-          
-          # If current PR is being validated and passed, ensure it's included
-          if current_pr and current_pr.state == 'open' and "${{ env.validation_failed }}" == "0":
-              # Check if current PR is already in the list
-              if not any(pr.number == current_pr.number for pr in filtered_pulls):
-                  filtered_pulls.insert(0, current_pr)
-          
-          # Sort by update time (most recent first)
-          filtered_pulls.sort(key=lambda x: x.updated_at, reverse=True)
-          
-          # Calculate summary statistics
-          ml_open = 0
-          ml_merged = 0
-          dev_open = 0
-          dev_merged = 0
-          unknown_open = 0
-          unknown_merged = 0
-          
-          for pr in filtered_pulls:
-              track = "Unknown"
-              try:
-                  files = pr.get_files()
-                  for f in files:
-                      if f.filename.endswith('track.txt'):
-                          try:
-                              content_file = repo.get_contents(f.filename, ref=pr.head.sha)
-                              track = content_file.decoded_content.decode("utf-8").strip().upper()
-                              if track not in ["ML", "DEV"]:
-                                  track = "Unknown"
-                          except:
-                              track = "Unknown"
-                  if track == "Unknown":
-                      title = pr.title.lower()
-                      if "ml" in title or any("notebook" in f.filename.lower() for f in files):
-                          track = "ML"
-                      elif "dev" in title or any("src/" in f.filename for f in files):
-                          track = "DEV"
-              except:
-                  track = "Unknown"
-              
-              if pr.merged:
-                  if track == "ML":
-                      ml_merged += 1
-                  elif track == "DEV":
-                      dev_merged += 1
-                  else:
-                      unknown_merged += 1
-              else:  # open
-                  if track == "ML":
-                      ml_open += 1
-                  elif track == "DEV":
-                      dev_open += 1
-                  else:
-                      unknown_open += 1
-          
-          total_open = ml_open + dev_open + unknown_open
-          total_merged = ml_merged + dev_merged + unknown_merged
-          total_submissions = total_open + total_merged
-          
-          table_lines = []
-          table_lines.append("# Hackathon Submissions")
-          table_lines.append("")
-          table_lines.append("!!! info \"Live Status\"")
-          table_lines.append(f"    Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}")
-          table_lines.append("    Only showing: ✅ Open PRs and ✅ Merged submissions")
-          table_lines.append("")
-          
-          # Summary Statistics Section
-          table_lines.append("## 📊 Summary Statistics")
-          table_lines.append("")
-          table_lines.append("| Track | Open PRs | Merged | Total |")
-          table_lines.append("|-------|----------|--------|-------|")
-          table_lines.append(f"| **ML Track** | {ml_open} | {ml_merged} | **{ml_open + ml_merged}** |")
-          table_lines.append(f"| **Dev Track** | {dev_open} | {dev_merged} | **{dev_open + dev_merged}** |")
-          if unknown_open + unknown_merged > 0:
-              table_lines.append(f"| *Unknown* | {unknown_open} | {unknown_merged} | *{unknown_open + unknown_merged}* |")
-          table_lines.append(f"| **All Tracks** | **{total_open}** | **{total_merged}** | **{total_submissions}** |")
-          table_lines.append("")
-          
-          # Progress bars for visual representation
-          table_lines.append("### 📈 Progress Overview")
-          table_lines.append("")
-          
-          if total_submissions > 0:
-              ml_percent = ((ml_open + ml_merged) / total_submissions * 100) if total_submissions > 0 else 0
-              dev_percent = ((dev_open + dev_merged) / total_submissions * 100) if total_submissions > 0 else 0
-              
-              table_lines.append(f"**ML Track**: {ml_open + ml_merged} submissions ({ml_percent:.1f}%)")
-              table_lines.append(f"**Dev Track**: {dev_open + dev_merged} submissions ({dev_percent:.1f}%)")
-              table_lines.append("")
-          
-          table_lines.append("## 🔍 Detailed Submissions")
-          table_lines.append("")
-          table_lines.append("| Team | Track | Status | PR | Checklist | Tests | Notebooks | Video |")
-          table_lines.append("|------|-------|--------|----|-----------|-------|-----------|-------|")
-          
-          for pr in filtered_pulls[:20]:  # Show last 20 submissions
-              team = pr.head.ref.replace('-', ' ').title()
-              title = pr.title
-              pr_link = pr.html_url
-              
-              # Determine track - try multiple methods
-              track = "Unknown"
-              try:
-                  # Method 1: Check if track.txt exists in PR files
-                  files = pr.get_files()
-                  for f in files:
-                      if f.filename.endswith('track.txt'):
-                          try:
-                              content_file = repo.get_contents(f.filename, ref=pr.head.sha)
-                              track = content_file.decoded_content.decode("utf-8").strip().upper()
-                          except:
-                              pass
-                  
-                  # Method 2: Fallback to title/folder detection
-                  if track == "Unknown":
-                      if "ml" in title.lower() or any("notebook" in f.filename.lower() for f in files):
-                          track = "ML"
-                      elif "dev" in title.lower() or any("src/" in f.filename for f in files):
-                          track = "DEV"
-              except Exception as e:
-                  print(f"Error detecting track for PR {pr.number}: {e}")
-              
-              # Status
-              status = "✅ Merged" if pr.merged else ("🔄 Open" if pr.state == "open" else "❌ Closed")
-              
-              # Default validation status
-              checklist_status = "⏳"
-              tests_status = "⏳" if track == "DEV" else "N/A"
-              notebooks_status = "⏳" if track == "ML" else "N/A"
-              video_link = "⏳"
-              
-              # If this is the current PR being validated, use our known status
-              if current_pr and pr.number == current_pr.number:
-                  checklist_status = "✅" if "${{ env.validation_failed }}" != "1" else "❌"
-                  if track == "DEV":
-                      tests_status = "✅"  # Assuming tests ran (continue-on-error)
-                  elif track == "ML":
-                      notebooks_status = "✅"  # Assuming notebooks ran (continue-on-error)
-              elif pr.merged:
-                  # For merged PRs, assume they passed validation
-                  checklist_status = "✅"
-                  if track == "DEV":
-                      tests_status = "✅"
-                  elif track == "ML":
-                      notebooks_status = "✅"
-              
-              # Try to get video link
-              try:
-                  for f in files:
-                      if "video-link.txt" in f.filename:
-                          content_file = repo.get_contents(f.filename, ref=pr.head.sha)
-                          video_content = content_file.decoded_content.decode("utf-8").strip()
-                          if video_content and video_content.startswith("http"):
-                              video_link = f"[📹 Video]({video_content})"
-                          else:
-                              video_link = "✅ File exists"
-                          break
-              except Exception as e:
-                  print(f"Error fetching video link for PR {pr.number}: {e}")
-              
-              table_lines.append(f"| {team} | {track} | {status} | [PR #{pr.number}]({pr_link}) | {checklist_status} | {tests_status} | {notebooks_status} | {video_link} |")
-          
-          # Write to docs directory
-          os.makedirs("docs", exist_ok=True)
-          with open("docs/submissions_index.md", "w") as f:
-              f.write("\n".join(table_lines))
-          
-          # Also create a simple JSON API
-          api_data = {
-              "updated": datetime.now().isoformat(),
-              "summary": {
-                  "ml_track": {
-                      "open": ml_open,
-                      "merged": ml_merged,
-                      "total": ml_open + ml_merged
-                  },
-                  "dev_track": {
-                      "open": dev_open,
-                      "merged": dev_merged,
-                      "total": dev_open + dev_merged
-                  },
-                  "unknown_track": {
-                      "open": unknown_open,
-                      "merged": unknown_merged,
-                      "total": unknown_open + unknown_merged
-                  },
-                  "all_tracks": {
-                      "open": total_open,
-                      "merged": total_merged,
-                      "total": total_submissions
-                  }
-              },
-              "current_pr": {
-                  "number": current_pr.number if current_pr else None,
-                  "team": "${{ env.team_folder }}",
-                  "track": "${{ env.submission_track }}",
-                  "status": "passed" if "${{ env.validation_failed }}" != "1" else "failed"
-              } if current_pr else None
-          }
-          
-          with open("docs/api.json", "w") as f:
-              json.dump(api_data, f, indent=2)
-          
-          print(f"✅ Submissions index updated! Showing {len(filtered_pulls)} submissions")
-          print(f"📊 Summary: ML Track - {ml_open} open, {ml_merged} merged | Dev Track - {dev_open} open, {dev_merged} merged")
-          EOF
-          
-          python update_submissions.py
-
-      - name: Deploy to GitHub Pages with MkDocs
-        if: always() && env.validation_failed == '0'
-        run: |
-          # Install MkDocs and material theme
-          pip install mkdocs mkdocs-material
-          
-          # Ensure mkdocs.yml exists (create if missing)
-          if [ ! -f "mkdocs.yml" ]; then
-              cat > mkdocs.yml << 'EOF'
-          site_name: PlotSense Hackathon Submissions
-          site_url: https://plotsenseai.github.io/PlotSenseAI-Submissions
-          repo_url: https://github.com/PlotSenseAI/PlotSenseAI-Submissions
-          theme:
-            name: material
-            features:
-              - navigation.tabs
-              - navigation.indexes
-              - content.code.copy
-              - navigation.top
-            palette:
-              - scheme: default
-                primary: blue
-                accent: blue
-          nav:
-            - Home: index.md
-            - Submissions: submissions_index.md
-          markdown_extensions:
-            - admonition
-            - pymdownx.details
-            - pymdownx.superfences
-          
-          extra:
-            social:
-              - icon: fontawesome/brands/github
-                link: https://github.com/PlotSenseAI
-
-          plugins:
-            - search
-
-          EOF
-          fi
-          
-      - name: Build and verify MkDocs site
-        if: always() && env.validation_failed == '0'
-        run: |     
-          # Ensure docs/index.md exists
-          if [ ! -f "docs/index.md" ]; then
-              cat > docs/index.md << 'EOF'
-          # PlotSense AI Hackathon - September 2025
-          
-          Welcome to the PlotSense AI Hackathon submission portal!
-          
-          ## 🏆 About the Hackathon
-          
-          This hackathon challenges participants to build innovative solutions using the PlotSense AI platform.
-          
-          ## 📋 Tracks
-          
-          - **ML Track**: Machine Learning and Data Science projects
-          - **Dev Track**: Software Development and Integration projects
-          
-          ## 🔍 Submission Status
-          
-          Check the [Submissions](submissions_index.md) page to see real-time validation status of all team submissions.
-          
-          ## 📊 Live Statistics
-          
-          The dashboard shows real-time statistics including:
-          - Count of ML Track submissions (Open and Merged)
-          - Count of Dev Track submissions (Open and Merged) 
-          - Total submission counts
-          - Progress overview
-          
-          ## 🚀 Getting Started
-          
-          1. Fork this repository
-          2. Create your submission in the `submissions/[team-name]/` folder
-          3. Add a `track.txt` file with either "ML" or "DEV"
-          4. Submit a Pull Request to the `submissions` branch
-          
-          Good luck! 🎉
-          EOF
-          fi
-          
-          # Build and deploy with MkDocs
-          mkdocs build
-          
-          # Deploy using the peaceiris action
-          echo "Deploying MkDocs site..."
-
-      - name: Deploy to GitHub Pages
-        if: always() && env.validation_failed == '0'
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./site
-          publish_branch: gh-pages
-          force_orphan: true
-          keep_files: false
