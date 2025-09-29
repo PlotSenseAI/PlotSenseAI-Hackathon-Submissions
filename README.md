@@ -37,21 +37,10 @@ Create a **public GitHub repository** with:
   - Tech stack used
   - Setup instructions
   - Team members & roles
-  - Video demo link (see Step 3 for details)
-  - Social media post links (see Step 4 for details)
+  - Video demo link (see Step 4 for details)
+  - Social media post links (see Step 5 for details)
 
-### Step 3: Video Demo
-- Create a **3-5 minute demo video**
-- Upload to YouTube (public/unlisted) or Google Drive
-- Add the link to your GitHub README and submission JSON
-
-### Step 4: Social Media
-- Post about your project on Twitter/X and LinkedIn
-- Use hashtags: `#PlotSenseAIHackathon2025 #HavilahAcademy`
-- Tag: `@HavilahAcademy` and `@PlotSenseAI`
-- Add links to your submission JSON
-
-### Step 5: Submit to This Repository
+### Step 3: Submit to This Repository
 
 #### 🍴 Fork & Create Submission
 1. **Fork** this repository to your GitHub account
@@ -114,6 +103,17 @@ Create a **public GitHub repository** with:
 2. **Open a Pull Request** to the `review` branch
 3. **PR Title:** `Submission: [YOUR-ID] - [Project Name]`
 4. **PR Description:** Include your User ID, repo link, video link, and team details
+
+### Step 4: Video Demo
+- Create a **3-5 minute demo video**
+- Upload to YouTube (public/unlisted) or Google Drive
+- Add the link to your GitHub README and submission JSON
+
+### Step 5: Social Media
+- Post about your project on Twitter/X and LinkedIn
+- Use hashtags: `#PlotSenseAIHackathon2025 #HavilahAcademy`
+- Tag: `@HavilahAcademy` and `@PlotSenseAI`
+- Add links to your submission JSON
 
 ### Step 6: Discord Verification
 Post in the `#submissions` Discord channel with:
