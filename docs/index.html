@@ -3,58 +3,74 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PlotSense Hackathon Dashboard</title>
+  <title>PlotsenseAI Hackathons</title>
   <link rel="stylesheet" href="styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <header>
-    <h1>📊 PlotSense Hackathon Dashboard</h1>
+    <h1>PlotsenseAI Hackathons</h1>
     <p>Live stats for submissions, teams, and activity</p>
   </header>
 
   <main>
-    <section class="metrics-grid">
-      <div class="metric-card">
-        <h2 id="total-submissions">0</h2>
-        <p>Total Submissions</p>
-      </div>
-      <div class="metric-card">
-        <h2 id="total-teams">0</h2>
-        <p>Total Teams</p>
-      </div>
-      <div class="metric-card">
-        <h2 id="validated-count">0</h2>
-        <p>Validated</p>
-      </div>
-      <div class="metric-card">
-        <h2 id="pending-count">0</h2>
-        <p>Pending</p>
+    <section class="summary-section">
+      <h2>Summary Statistics</h2>
+      <div class="summary-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Track</th>
+              <th>Open PRs</th>
+              <th>Merged</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>ML Track</strong></td>
+              <td id="ml-open">0</td>
+              <td id="ml-merged">0</td>
+              <td id="ml-total">0</td>
+            </tr>
+            <tr>
+              <td><strong>Dev Track</strong></td>
+              <td id="dev-open">0</td>
+              <td id="dev-merged">0</td>
+              <td id="dev-total">0</td>
+            </tr>
+            <tr class="totals-row">
+              <td><strong>All Tracks</strong></td>
+              <td id="all-open">0</td>
+              <td id="all-merged">0</td>
+              <td id="all-total">0</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </section>
 
-    <section class="charts-grid">
-      <div class="chart-card">
-        <h3>Submissions by Track</h3>
-        <canvas id="trackChart"></canvas>
-      </div>
-      <div class="chart-card">
-        <h3>Tech Stack Usage</h3>
-        <canvas id="techChart"></canvas>
-      </div>
-      <div class="chart-card">
-        <h3>Team Sizes</h3>
-        <canvas id="teamChart"></canvas>
-      </div>
-      <div class="chart-card">
-        <h3>Submission Timeline</h3>
-        <canvas id="timelineChart"></canvas>
+    <section class="submissions-section">
+      <h2>Detailed Submissions</h2>
+      <div class="submissions-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Team</th>
+              <th>Track</th>
+              <th>Status</th>
+              <th>PR</th>
+            </tr>
+          </thead>
+          <tbody id="submissions-list">
+            <!-- Submissions will be populated by JavaScript -->
+          </tbody>
+        </table>
       </div>
     </section>
   </main>
 
   <footer>
-    <p>Updated automatically every hour · Built with ❤️ for PlotSense Hackathon</p>
+    <p>Updated automatically every hour · Built by Havilah Academy for PlotSense Hackathon</p>
   </footer>
 
   <script src="script.js"></script>
