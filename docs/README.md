@@ -1,8 +1,8 @@
-# PlotSense Hackathon 2025 - Dashboard Documentation
+# PlotSenseAI Hackathon 2025 - Dashboard Documentation
 
 ## 🎯 Overview
 
-This GitHub Pages site serves as the official dashboard for the PlotSense Hackathon 2025, providing real-time metrics, submission showcases, and comprehensive analytics for the hackathon hosted by Havilah Academy.
+This GitHub Pages site serves as the official dashboard for the PlotSenseAI Hackathon 2025, providing real-time metrics, submission showcases, and comprehensive analytics for the hackathon.
 
 ## 🚀 Features
 
@@ -95,7 +95,7 @@ docs/
 ### Local Development
 ```bash
 # Clone the repository
-git clone https://github.com/Havilah-Blockchain-Studios/PlotSenseAI-Hackathon-Submissions.git
+git clone https://github.com/PlotSenseAI/PlotSenseAI-Hackathon-Submissions.git
 
 # Navigate to docs directory
 cd PlotSenseAI-Hackathon-Submissions/docs
@@ -269,12 +269,12 @@ Use GitHub Issues with:
 ## 📞 Support
 
 For technical issues or questions:
-- **GitHub Issues**: [Repository Issues](https://github.com/Havilah-Blockchain-Studios/PlotSenseAI-Hackathon-Submissions/issues)
+- **GitHub Issues**: [Repository Issues](https://github.com/PlotSenseAI/PlotSenseAI-Hackathon-Submissions/issues)
 - **Discord**: `#submissions` channel
 - **Email**: Contact through hackathon form
 
 ---
 
-Built with ❤️ by the Havilah Academy team for the PlotSense Hackathon 2025.
+Developed by PlotSenseAI and the Havilah Academy team.
 
-**Shalom and happy coding!** 🚀
+**Happy hacking!** 🚀
