@@ -5,6 +5,10 @@
   "team_name": "Your Team Name",
   "repo_url": "https://github.com/yourteam/plotsenseai-hackathon-PSH2025-XXX",
   "video_url": "https://youtube.com/your-demo-video",
+  "contribution_prs": [
+    "https://github.com/plotsenseai/plotsenseai/pull/123",
+    "https://github.com/plotsenseai/plotsenseai/pull/124"
+  ],
   "social_links": [
     "https://x.com/yourteam/status/12345",
     "https://linkedin.com/posts/yourteam_plotsense-hackathon"

@@ -119,6 +119,23 @@ jobs:
               else:
                   validation_results.append("FAIL: **Team members** - Invalid format")
 
+              # Contribution PRs (required for Dev track only)
+              if 'track' in data and data['track'] == "PlotSense Dev":
+                  if 'contribution_prs' in data and isinstance(data['contribution_prs'], list) and data['contribution_prs']:
+                      valid_prs = all(isinstance(pr, str) and 'github.com' in pr and '/pull/' in pr for pr in data['contribution_prs'])
+                      if valid_prs:
+                          validation_results.append(f"PASS: **Contribution PRs** - {len(data['contribution_prs'])} valid PR links")
+                      else:
+                          validation_results.append("FAIL: **Contribution PRs** - Invalid PR URL format")
+                  else:
+                      validation_results.append("FAIL: **Contribution PRs** - Required for Dev track (must be non-empty list)")
+                      missing_fields.append('contribution_prs')
+              elif 'track' in data and data['track'] == "PlotSense ML":
+                  if 'contribution_prs' in data:
+                      validation_results.append("INFO: **Contribution PRs** - Not required for ML track but included")
+                  else:
+                      validation_results.append("INFO: **Contribution PRs** - Not required for ML track")
+
               # Build report
               report = "## Submission Validation Results\n\n"
               report += f"**File:** `{json_file.name}`\n\n"
