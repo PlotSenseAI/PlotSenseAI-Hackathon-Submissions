@@ -1,7 +1,7 @@
 # 📖 Detailed Submission Guide
 
 ## 🎯 Overview
-This guide provides detailed instructions for participating in the Plotsense Hackathon hosted by Havilah Academy.
+This guide provides detailed instructions for participating in the PlotSenseAI Hackathon.
 
 ## 📝 Step-by-Step Process
 
@@ -189,10 +189,9 @@ Projects will be evaluated on:
 ## 🆘 Need Help?
 
 - **Discord:** Ask in the `#help` channel
-- **Email:** Contact Havilah Academy organizers
 - **Documentation:** Check this repository's README
 - **Technical Issues:** Create an issue in this repository
 
 ---
 
-**Shalom with love from Havilah! We're excited to see what you build! 🚀**
+**We're excited to see what you build! 🚀**
