@@ -131,19 +131,37 @@ jobs:
 
             return metrics
 
+        # Collect September 2025 submissions
         submissions = collect_submissions()
         metrics = generate_metrics(submissions)
 
-        os.makedirs('docs/data', exist_ok=True)
+        # Create directory structure for September 2025 hackathon
+        os.makedirs('docs/data/september-2025', exist_ok=True)
 
+        # Save September 2025 data
+        with open('docs/data/september-2025/submissions.json', 'w') as f:
+            json.dump(submissions, f, indent=2, default=str)
+
+        with open('docs/data/september-2025/metrics.json', 'w') as f:
+            json.dump(metrics, f, indent=2, default=str)
+
+        # Also save to legacy locations for backward compatibility
+        os.makedirs('docs/data', exist_ok=True)
         with open('docs/data/submissions.json', 'w') as f:
             json.dump(submissions, f, indent=2, default=str)
 
         with open('docs/data/metrics.json', 'w') as f:
             json.dump(metrics, f, indent=2, default=str)
 
-        print(f"Processed {len(submissions)} submissions")
+        print(f"Processed {len(submissions)} submissions for September 2025")
         print(f"Generated metrics: {metrics['total_submissions']} total submissions")
+
+        # Future hackathons can be added here with similar logic
+        # For example:
+        # future_submissions = collect_future_submissions()
+        # os.makedirs('docs/data/future-hackathon', exist_ok=True)
+        # with open('docs/data/future-hackathon/submissions.json', 'w') as f:
+        #     json.dump(future_submissions, f, indent=2, default=str)
         EOF
 
     - name: Setup GitHub Pages
