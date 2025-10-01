@@ -1,13 +1,13 @@
 
 # 🚀 Plotsense Hackathon Submissions
 
-![Submission Validation](https://github.com/Havilah-Blockchain-Studios/PlotSenseAI-Hackathon-Submissions/workflows/Validate%20Submission/badge.svg)
+![Submission Validation](https://github.com/PlotSenseAI/PlotSenseAI-Hackathon-Submissions/workflows/Validate%20Submission/badge.svg)
 
-Welcome to the official submission repository for the **Plotsense Hackathon** hosted by **Havilah Academy**!
+Welcome to the official submission repository for the **PlotSenseAI Hackathon**
 
 ## Hackathon Submission Dashboard
 Access the live dashboard of submissions and their statuses here:
-[![Hackathon Dashboard](https://img.shields.io/badge/Dashboard-View%20Submissions-blue?logo=github)](https://havilah-blockchain-studios.github.io/PlotSenseAI-Hackathon-Submissions/)
+[![Hackathon Dashboard](https://img.shields.io/badge/Dashboard-View%20Submissions-blue?logo=github)](https://plotsenseai.github.io/PlotSenseAI-Hackathon-Submissions/)
 
 ## 🏆 Prize Pool Breakdown
 
@@ -111,8 +111,8 @@ Create a **public GitHub repository** with:
 
 ### Step 5: Social Media
 - Post about your project on Twitter/X and LinkedIn
-- Use hashtags: `#PlotSenseAIHackathon2025 #HavilahAcademy`
-- Tag: `@HavilahAcademy` and `@PlotSenseAI`
+- Use hashtags: `#PlotSenseAI #PlotSenseAIHackathon2025 #HavilahAcademy`
+- Tag: `@PlotSenseAI` and `@HavilahAcademy`
 - Add links to your submission JSON
 
 ### Step 6: Discord Verification
@@ -136,7 +136,7 @@ Before submitting, ensure you have:
 - [ ] Uploaded your demo video
 - [ ] Posted on Twitter/X and LinkedIn with required hashtags
 - [ ] Starred PlotSense Github
-- [ ] Followed Havilah Academy and PlotSenseAI on X/Twitter, LinkedIn, and YouTube
+- [ ] Followed PlotSenseAI and Havilah Academy on X/Twitter, LinkedIn, and YouTube
 - [ ] Posted in Discord #submissions channel
 
 ## 🎯 Important Notes
@@ -161,14 +161,15 @@ The bot will comment on your PR with validation results. **Fix any issues** and 
 ## 🏆 Post-Hackathon
 
 After the hackathon, all approved submissions will be:
+- Showcased on the PlotSenseAI website
 - Showcased on the Havilah Academy website
 - Archived in the `archive/plotsense-2025` branch
 - Featured in our community highlights
 
 ---
 
-**Questions?** Reach out in the Discord server or contact the Havilah Academy team.
+**Questions?** Reach out in the Discord server.
 
-Shalom with love from Havilah Academy and happy hacking! 🚀
+Happy hacking! 🚀
 
 
