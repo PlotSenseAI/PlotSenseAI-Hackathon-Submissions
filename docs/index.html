@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PlotSenseAI Hackathons</title>
+  <title>PlotSenseAI Hackathons - Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     * {
       margin: 0;
@@ -18,6 +18,8 @@
       --primary-blue: #3b82f6;
       --primary-blue-light: #60a5fa;
       --primary-blue-dark: #1d4ed8;
+      --purple: #8b5cf6;
+      --purple-light: #a78bfa;
       --gray-50: #f9fafb;
       --gray-100: #f3f4f6;
       --gray-200: #e5e7eb;
@@ -28,15 +30,6 @@
       --gray-700: #374151;
       --gray-800: #1f2937;
       --gray-900: #111827;
-      --green-50: #f0fdf4;
-      --green-500: #22c55e;
-      --green-600: #16a34a;
-      --orange-50: #fff7ed;
-      --orange-500: #f97316;
-      --orange-600: #ea580c;
-      --red-50: #fef2f2;
-      --red-500: #ef4444;
-      --red-600: #dc2626;
       --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
       --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
       --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
@@ -58,7 +51,7 @@
     }
 
     header {
-      background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+      background: linear-gradient(135deg, var(--primary-blue) 0%, var(--purple) 100%);
       color: white;
       padding: 3rem 0;
       position: relative;
@@ -79,12 +72,20 @@
     .header-content {
       position: relative;
       z-index: 1;
-      text-align: center;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .header-text {
+      flex: 1;
     }
 
     header h1 {
       font-size: 3rem;
-      font-weight: 700;
+      font-weight: 800;
       margin-bottom: 0.5rem;
       background: linear-gradient(45deg, #ffffff, #e0f2fe);
       -webkit-background-clip: text;
@@ -98,161 +99,231 @@
       font-weight: 400;
     }
 
+    .search-container {
+      position: relative;
+      min-width: 300px;
+    }
+
+    #team-search {
+      width: 100%;
+      padding: 0.875rem 1rem 0.875rem 2.75rem;
+      border-radius: 12px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.95);
+      font-size: 0.95rem;
+      color: var(--gray-900);
+      transition: all 0.3s ease;
+      font-family: 'Inter', sans-serif;
+    }
+
+    #team-search:focus {
+      outline: none;
+      border-color: white;
+      background: white;
+      box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2);
+    }
+
+    #team-search::placeholder {
+      color: var(--gray-500);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--gray-400);
+      pointer-events: none;
+    }
+
+    .search-results {
+      position: absolute;
+      top: calc(100% + 0.5rem);
+      left: 0;
+      right: 0;
+      background: white;
+      border-radius: 12px;
+      box-shadow: var(--shadow-xl);
+      max-height: 400px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+      border: 1px solid var(--gray-200);
+    }
+
+    .search-results.show {
+      display: block;
+    }
+
+    .search-result-item {
+      padding: 1rem;
+      border-bottom: 1px solid var(--gray-200);
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .search-result-item:hover {
+      background: var(--gray-50);
+    }
+
+    .search-result-item:last-child {
+      border-bottom: none;
+    }
+
+    .search-result-team {
+      font-weight: 600;
+      color: var(--gray-900);
+      margin-bottom: 0.25rem;
+    }
+
+    .search-result-details {
+      font-size: 0.875rem;
+      color: var(--gray-600);
+    }
+
+    .search-no-results {
+      padding: 2rem;
+      text-align: center;
+      color: var(--gray-500);
+    }
+
     main {
       padding: 4rem 0;
     }
 
-    .stats-grid {
+    .intro-section {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+
+    .intro-section h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: 1rem;
+    }
+
+    .intro-section p {
+      font-size: 1.125rem;
+      color: var(--gray-600);
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .hackathons-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 1.5rem;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 2rem;
       margin-bottom: 3rem;
     }
 
-    .stat-card {
+    .hackathon-card {
       background: white;
-      border-radius: 16px;
-      padding: 2rem;
-      box-shadow: var(--shadow-md);
+      border-radius: 20px;
+      padding: 2.5rem;
+      box-shadow: var(--shadow-lg);
       border: 1px solid var(--gray-200);
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
       overflow: hidden;
     }
 
-    .stat-card::before {
+    .hackathon-card::before {
       content: '';
       position: absolute;
       top: 0;
       left: 0;
       right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, var(--primary-blue), var(--primary-blue-light));
+      height: 6px;
+      background: linear-gradient(90deg, var(--primary-blue), var(--purple));
     }
 
-    .stat-card:hover {
-      transform: translateY(-4px);
+    .hackathon-card:hover {
+      transform: translateY(-8px);
       box-shadow: var(--shadow-xl);
     }
 
-    .stat-number {
-      font-size: 2.5rem;
+    .hackathon-date {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--primary-blue-light), var(--purple-light));
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    .hackathon-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: 1rem;
+    }
+
+    .hackathon-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: 1rem;
+      background: var(--gray-50);
+      border-radius: 12px;
+    }
+
+    .stat-value {
+      font-size: 1.75rem;
       font-weight: 700;
       color: var(--primary-blue);
-      margin-bottom: 0.5rem;
+      display: block;
     }
 
     .stat-label {
-      font-size: 0.875rem;
+      font-size: 0.75rem;
       color: var(--gray-600);
-      font-weight: 500;
       text-transform: uppercase;
       letter-spacing: 0.05em;
+      margin-top: 0.25rem;
     }
 
-    .section {
-      background: white;
-      border-radius: 20px;
-      box-shadow: var(--shadow-lg);
-      border: 1px solid var(--gray-200);
-      overflow: hidden;
-      margin-bottom: 2rem;
-    }
-
-    .section-header {
-      background: linear-gradient(135deg, var(--gray-50) 0%, white 100%);
-      padding: 2rem;
-      border-bottom: 1px solid var(--gray-200);
-    }
-
-    .section-title {
-      font-size: 1.5rem;
-      font-weight: 600;
-      color: var(--gray-900);
-      margin: 0;
-    }
-
-    .table-container {
-      overflow-x: auto;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.9rem;
-    }
-
-    th {
-      background: var(--gray-50);
-      padding: 1rem;
-      text-align: left;
-      font-weight: 600;
-      color: var(--gray-700);
-      border-bottom: 1px solid var(--gray-200);
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-
-    td {
-      padding: 1rem;
-      border-bottom: 1px solid var(--gray-200);
-      transition: background-color 0.2s ease;
-    }
-
-    tr:hover td {
-      background: var(--gray-50);
-    }
-
-    .totals-row td {
-      background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+    .hackathon-link {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
       color: white;
-      font-weight: 600;
-      border-bottom: none;
-    }
-
-    .totals-row:hover td {
-      background: linear-gradient(135deg, var(--primary-blue-dark) 0%, var(--primary-blue) 100%);
-    }
-
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 0.375rem 0.75rem;
-      border-radius: 9999px;
-      font-size: 0.75rem;
-      font-weight: 500;
-      text-transform: capitalize;
-    }
-
-    .status-open {
-      background: var(--orange-50);
-      color: var(--orange-600);
-      border: 1px solid var(--orange-500);
-    }
-
-    .status-merged {
-      background: var(--green-50);
-      color: var(--green-600);
-      border: 1px solid var(--green-500);
-    }
-
-    .status-closed {
-      background: var(--red-50);
-      color: var(--red-600);
-      border: 1px solid var(--red-500);
-    }
-
-    .pr-link {
-      color: var(--primary-blue);
+      padding: 0.875rem 2rem;
+      border-radius: 12px;
       text-decoration: none;
-      font-weight: 500;
-      transition: color 0.2s ease;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      margin-top: 1rem;
     }
 
-    .pr-link:hover {
-      color: var(--primary-blue-dark);
-      text-decoration: underline;
+    .hackathon-link:hover {
+      transform: translateX(4px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .upcoming-badge {
+      background: linear-gradient(135deg, var(--gray-300), var(--gray-400));
+      color: var(--gray-700);
+    }
+
+    .coming-soon {
+      opacity: 0.7;
+    }
+
+    .coming-soon .hackathon-link {
+      background: var(--gray-300);
+      color: var(--gray-600);
+      cursor: not-allowed;
+    }
+
+    .coming-soon .hackathon-link:hover {
+      transform: none;
     }
 
     footer {
@@ -268,55 +339,30 @@
       opacity: 0.8;
     }
 
-    .loading {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
-      color: var(--gray-500);
-    }
-
-    .loading::after {
-      content: '';
-      width: 20px;
-      height: 20px;
-      margin-left: 0.5rem;
-      border: 2px solid var(--gray-300);
-      border-top: 2px solid var(--primary-blue);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
     @media (max-width: 768px) {
       header h1 {
         font-size: 2rem;
       }
 
-      .stats-grid {
+      .header-content {
+        flex-direction: column;
+      }
+
+      .header-text {
+        text-align: center;
+      }
+
+      .search-container {
+        width: 100%;
+      }
+
+      .hackathons-grid {
         grid-template-columns: 1fr;
-        gap: 1rem;
+        gap: 1.5rem;
       }
 
-      .stat-card {
-        padding: 1.5rem;
-      }
-
-      .stat-number {
-        font-size: 2rem;
-      }
-
-      .section-header {
-        padding: 1.5rem;
-      }
-
-      th, td {
-        padding: 0.75rem;
-        font-size: 0.8rem;
+      .intro-section h2 {
+        font-size: 1.5rem;
       }
 
       main {
@@ -333,9 +379,8 @@
         padding: 2rem 0;
       }
 
-      th, td {
-        padding: 0.5rem;
-        font-size: 0.75rem;
+      .hackathon-card {
+        padding: 1.5rem;
       }
     }
   </style>
@@ -344,91 +389,72 @@
   <header>
     <div class="container">
       <div class="header-content">
-        <h1>PlotSenseAI Hackathons</h1>
-        <p>Real-time submission tracking and analytics dashboard</p>
+        <div class="header-text">
+          <h1>PlotSenseAI Hackathons</h1>
+          <p>Innovation, collaboration, and cutting-edge AI solutions</p>
+        </div>
+        <div class="search-container">
+          <svg class="search-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 17A8 8 0 1 0 9 1a8 8 0 0 0 0 16zM19 19l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <input
+            type="text"
+            id="team-search"
+            placeholder="Search for a team..."
+            autocomplete="off"
+          >
+          <div class="search-results" id="search-results"></div>
+        </div>
       </div>
     </div>
   </header>
 
   <main>
     <div class="container">
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-number" id="total-submissions">0</div>
-          <div class="stat-label">Total Submissions</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number" id="open-prs">0</div>
-          <div class="stat-label">Open PRs</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number" id="merged-prs">0</div>
-          <div class="stat-label">Merged PRs</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number" id="total-teams">0</div>
-          <div class="stat-label">Active Teams</div>
-        </div>
+      <div class="intro-section">
+        <h2>Welcome to PlotSenseAI Hackathons</h2>
+        <p>Explore our hackathon events, track team submissions, and discover innovative AI projects built by talented developers and data scientists from around the world.</p>
       </div>
 
-      <div class="section">
-        <div class="section-header">
-          <h2 class="section-title">Track Summary</h2>
+      <div class="hackathons-grid">
+        <!-- September 2025 Hackathon -->
+        <div class="hackathon-card">
+          <span class="hackathon-date">September 2025</span>
+          <h3 class="hackathon-title">PlotSense Hackathon 2025</h3>
+          <p style="color: var(--gray-600); margin-bottom: 1rem;">
+            The inaugural PlotSenseAI hackathon featuring ML and Development tracks.
+          </p>
+          <div class="hackathon-stats">
+            <div class="stat-item">
+              <span class="stat-value" id="sept-2025-teams">-</span>
+              <span class="stat-label">Teams</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value" id="sept-2025-submissions">-</span>
+              <span class="stat-label">Submissions</span>
+            </div>
+          </div>
+          <a href="september-2025.html" class="hackathon-link">View Dashboard →</a>
         </div>
-        <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Track</th>
-                <th>Open PRs</th>
-                <th>Merged</th>
-                <th>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>ML Track</strong></td>
-                <td id="ml-open">0</td>
-                <td id="ml-merged">0</td>
-                <td id="ml-total">0</td>
-              </tr>
-              <tr>
-                <td><strong>Dev Track</strong></td>
-                <td id="dev-open">0</td>
-                <td id="dev-merged">0</td>
-                <td id="dev-total">0</td>
-              </tr>
-              <tr class="totals-row">
-                <td><strong>All Tracks</strong></td>
-                <td id="all-open">0</td>
-                <td id="all-merged">0</td>
-                <td id="all-total">0</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
 
-      <div class="section">
-        <div class="section-header">
-          <h2 class="section-title">Submission Details</h2>
-        </div>
-        <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Team</th>
-                <th>Track</th>
-                <th>Status</th>
-                <th>PR Link</th>
-              </tr>
-            </thead>
-            <tbody id="submissions-list">
-              <tr>
-                <td colspan="4" class="loading">Loading submissions...</td>
-              </tr>
-            </tbody>
-          </table>
+        <!-- Future Hackathons (Template) -->
+        <div class="hackathon-card coming-soon">
+          <span class="hackathon-date upcoming-badge">Coming Soon</span>
+          <h3 class="hackathon-title">Future Hackathon</h3>
+          <p style="color: var(--gray-600); margin-bottom: 1rem;">
+            Stay tuned for our next exciting hackathon event!
+          </p>
+          <div class="hackathon-stats">
+            <div class="stat-item">
+              <span class="stat-value">-</span>
+              <span class="stat-label">Teams</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value">-</span>
+              <span class="stat-label">Submissions</span>
+            </div>
+          </div>
+          <a href="#" class="hackathon-link" onclick="return false;">Coming Soon</a>
         </div>
       </div>
     </div>
@@ -436,10 +462,85 @@
 
   <footer>
     <div class="container">
-      <p>Updated automatically every hour · PlotSenseAI Hackathon X Havilah Academy </p>
+      <p>© 2025 PlotSenseAI · Built by Havilah Academy · Updated automatically every hour</p>
     </div>
   </footer>
 
-  <script src="script.js"></script>
+  <script>
+    // Load all hackathon data for search
+    let allSubmissions = [];
+
+    async function loadAllData() {
+      try {
+        // Load September 2025 data
+        const sept2025Response = await fetch('data/september-2025/submissions.json', { cache: 'no-store' });
+        const sept2025Data = await sept2025Response.json();
+
+        allSubmissions = sept2025Data.map(sub => ({
+          ...sub,
+          hackathon: 'September 2025',
+          hackathonUrl: 'september-2025.html'
+        }));
+
+        // Update stats
+        document.getElementById('sept-2025-teams').textContent = sept2025Data.length;
+        document.getElementById('sept-2025-submissions').textContent = sept2025Data.length;
+
+        // Future: Load other hackathon data here
+        // const futureResponse = await fetch('data/future-hackathon/submissions.json');
+        // ...
+
+      } catch (err) {
+        console.error('Failed to load hackathon data:', err);
+        document.getElementById('sept-2025-teams').textContent = '0';
+        document.getElementById('sept-2025-submissions').textContent = '0';
+      }
+    }
+
+    // Search functionality
+    const searchInput = document.getElementById('team-search');
+    const searchResults = document.getElementById('search-results');
+
+    searchInput.addEventListener('input', (e) => {
+      const query = e.target.value.trim().toLowerCase();
+
+      if (query.length < 2) {
+        searchResults.classList.remove('show');
+        return;
+      }
+
+      const results = allSubmissions.filter(sub =>
+        sub.team_name?.toLowerCase().includes(query) ||
+        sub.project_name?.toLowerCase().includes(query)
+      );
+
+      if (results.length === 0) {
+        searchResults.innerHTML = '<div class="search-no-results">No teams found matching your search.</div>';
+        searchResults.classList.add('show');
+        return;
+      }
+
+      searchResults.innerHTML = results.map(result => `
+        <div class="search-result-item" onclick="window.location.href='${result.hackathonUrl}?team=${encodeURIComponent(result.team_name)}'">
+          <div class="search-result-team">${result.team_name || 'Unknown Team'}</div>
+          <div class="search-result-details">
+            ${result.project_name || 'No project name'} · ${result.track || 'Unknown Track'} · ${result.hackathon}
+          </div>
+        </div>
+      `).join('');
+
+      searchResults.classList.add('show');
+    });
+
+    // Close search results when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+        searchResults.classList.remove('show');
+      }
+    });
+
+    // Load data on page load
+    loadAllData();
+  </script>
 </body>
 </html>
