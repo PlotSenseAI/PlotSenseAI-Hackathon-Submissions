@@ -50,4 +50,4 @@ Please confirm you have completed all requirements:
 
 ---
 
-**Thank you for participating in the Plotsense Hackathon! 🚀** 
+**Thank you for participating in the PlotsenseAI Hackathon! 🚀** 
