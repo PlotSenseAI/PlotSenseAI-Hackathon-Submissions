@@ -1,0 +1,16 @@
+{
+  "total_submissions": 0,
+  "total_teams": 0,
+  "tracks": {
+    "PlotSense ML": 0,
+    "PlotSense Dev": 0
+  },
+  "status_counts": {
+    "validated": 0,
+    "pending": 0,
+    "failed": 0
+  },
+  "tech_stack_usage": {},
+  "team_sizes": {},
+  "submission_timeline": []
+}
