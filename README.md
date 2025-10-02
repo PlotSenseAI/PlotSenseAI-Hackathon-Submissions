@@ -19,6 +19,8 @@ Use PlotSenseAI as your primary tool for exploratory data analysis (EDA) in a ma
 ### 🏅 Track 2 — PlotSense Dev (£400)
 Develop modules that add advanced analytical capabilities to PlotSenseAI's core functionality.
 
+📖 **For detailed guidelines on Dev Track contributions, see [DEV_TRACK_GUIDE.md](DEV_TRACK_GUIDE.md)**
+
 ## 📋 Submission Process
 
 ### Step 1: Fill the Submission Form
