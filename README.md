@@ -1,5 +1,5 @@
 
-# 🚀 Plotsense Hackathon Submissions
+# 🚀 PlotSenseAI OpenSource Hackathon Submissions
 
 ![Submission Validation](https://github.com/PlotSenseAI/PlotSenseAI-Hackathon-Submissions/workflows/Validate%20Submission/badge.svg)
 
