@@ -1,197 +1,211 @@
-# 📖 Detailed Submission Guide
+# PlotSense Dev Track Submission Guide
 
-## 🎯 Overview
-This guide provides detailed instructions for participating in the PlotSenseAI Hackathon.
+Welcome to the PlotSense Dev Track! This guide will help you make meaningful contributions to the PlotSense project.
 
-## 📝 Step-by-Step Process
+## Overview
 
-### 1. Registration & User ID
-1. **Fill out the Google Form** (link provided by organizers)
-2. **Receive your unique User ID** via email (format: `PSH2025-XXX`)
-3. **Save your User ID** - you'll need it throughout the process
+The Dev Track focuses on contributing to the PlotSense platform by implementing features, fixing bugs, improving documentation, or enhancing the codebase. Your contributions should be made directly to the [PlotSense repository](https://github.com/PlotSenseAI/PlotSense).
 
-### 2. Project Repository Setup
-Create a **public GitHub repository** with these requirements:
+For detailed information on what you can contribute, review the [PlotSense Technical Roadmap](https://plotsenseai.gitbook.io/plotsense-technical-roadmap/) which outlines the project's development phases, features, and priorities.
 
-#### Repository Naming
-- **Format:** `plotsenseai-hackathon-[YOUR-USER-ID]`
-- **Example:** `plotsenseai-hackathon-PSH2025-023`
+## Prerequisites
 
-#### Required README.md Content
-Your project repository must include:
+Before you start, make sure you have:
+- A GitHub account
+- Git installed on your local machine
+- Basic knowledge of the PlotSense tech stack
+- Familiarity with pull request workflows
 
-```markdown
-# [Project Name] - [Your User ID]
+## Getting Started
 
-## Project Description
-Brief description of what your project does and why it's innovative.
+### 1. Fork the PlotSense Repository
 
-## Tech Stack
-- Frontend: React, Next.js, etc.
-- Backend: Node.js, Python, etc.
-- Database: PostgreSQL, MongoDB, etc.
-- AI/ML: TensorFlow, PyTorch, etc.
+1. Navigate to [https://github.com/PlotSenseAI/PlotSense](https://github.com/PlotSenseAI/PlotSense)
+2. Click the "Fork" button in the top-right corner
+3. This creates a copy of the repository under your GitHub account
 
-## Team Members
-- **[Name]** - [Role] - [Email]
-- **[Name]** - [Role] - [Email]
+### 2. Clone Your Fork
 
-## Setup Instructions
-1. Clone the repository
-2. Install dependencies
-3. Configure environment variables
-4. Run the application
-
-## Demo Video
-[Link to your 3-5 minute demo video]
-
-## Social Media
-- [Twitter/X post link]
-- [LinkedIn post link]
-- [Other social media links]
-
-## Hackathon Details
-- **User ID:** PSH2025-XXX
-- **Team:** [Team Name]
-- **Contact:** [Main contact email]
+```bash
+git clone https://github.com/YOUR_USERNAME/PlotSense.git
+cd PlotSense
 ```
 
-### 3. Submission JSON File
+### 3. Set Up Upstream Remote
 
-#### Step 3.1: Fork This Repository
-1. Fork the `PlotSenseAI-Hackathon-Submissions` repository
-2. Clone your fork locally
+```bash
+git remote add upstream https://github.com/PlotSenseAI/PlotSense.git
+git fetch upstream
+```
 
-#### Step 3.2: Create Your Submission File
-1. **Choose your track** and navigate to the appropriate directory:
-   - **PlotSense ML Track**: `submissions/plotsense-2025-ml/`
-   - **PlotSense Dev Track**: `submissions/plotsense-2025-dev/`
-2. Create a file named `[your-project-name].json`
-3. Use the appropriate template below:
+### 4. Create a Feature Branch
 
-**For PlotSense ML Track:**
+```bash
+git checkout -b feature/your-feature-name
+```
+
+Use descriptive branch names:
+- `feature/add-user-analytics`
+- `fix/login-timeout-issue`
+- `docs/update-api-documentation`
+
+## Making Contributions
+
+### Types of Contributions
+
+1. **Feature Development**: Implement new functionality
+2. **Bug Fixes**: Resolve existing issues
+3. **Documentation**: Improve README, guides, or code documentation
+4. **Performance Improvements**: Optimize existing code
+5. **Testing**: Add or improve test coverage
+6. **UI/UX Enhancements**: Improve user interface and experience
+
+### Development Workflow
+
+1. **Keep Your Fork Updated**
+   ```bash
+   git fetch upstream
+   git checkout main
+   git merge upstream/main
+   ```
+
+2. **Make Your Changes**
+   - Write clean, well-documented code
+   - Follow the project's coding standards
+   - Add tests for new features
+   - Update documentation as needed
+
+3. **Commit Your Changes**
+   ```bash
+   git add .
+   git commit -m "type(scope): brief description"
+   ```
+
+   **Commit Message Format:**
+   - `feat(auth): add OAuth login support`
+   - `fix(api): resolve timeout issue in data endpoint`
+   - `docs(readme): update installation instructions`
+   - `test(utils): add unit tests for helper functions`
+   - `refactor(dashboard): improve performance of chart rendering`
+
+4. **Push to Your Fork**
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+
+### 5. Create a Pull Request
+
+1. Go to your fork on GitHub
+2. Click "Compare & pull request"
+3. Fill out the PR template with:
+   - **Title**: Clear, descriptive title
+   - **Description**: What changes you made and why
+   - **Related Issues**: Link any related issues
+   - **Testing**: How you tested your changes
+   - **Screenshots**: For UI changes, include before/after screenshots
+
+## Submission Requirements
+
+To submit your Dev Track entry, your pull request must include:
+
+### Required Information
+
+Create or update your team's submission file:
+
 ```json
 {
-  "id": "PSH2025-XXX",
-  "track": "PlotSense ML",
-  "project_name": "Your ML Project Name",
   "team_name": "Your Team Name",
-  "repo_url": "https://github.com/yourteam/plotsenseai-hackathon-PSH2025-XXX",
-  "video_url": "https://youtube.com/your-demo-video",
-  "social_links": [
-    "https://x.com/yourteam/status/12345",
-    "https://linkedin.com/posts/yourteam_plotsense-hackathon"
-  ],
-  "discord_handle": "yourhandle#1234",
-  "contact_email": "yourteam@example.com",
-  "team_members": [
-    { "name": "Member 1", "role": "ML Engineer" },
-    { "name": "Member 2", "role": "Data Scientist" }
-  ]
-}
-```
-
-**For PlotSense Dev Track:**
-```json
-{
-  "id": "PSH2025-XXX",
+  "project_name": "Brief Project Name",
   "track": "PlotSense Dev",
-  "project_name": "Your Dev Project Name",
-  "team_name": "Your Team Name",
-  "repo_url": "https://github.com/yourteam/plotsenseai-hackathon-PSH2025-XXX",
-  "video_url": "https://youtube.com/your-demo-video",
-  "social_links": [
-    "https://x.com/yourteam/status/12345",
-    "https://linkedin.com/posts/yourteam_plotsense-hackathon"
+  "members": [
+    {
+      "name": "Team Member 1",
+      "github": "github-username",
+      "role": "Frontend Developer"
+    },
+    {
+      "name": "Team Member 2",
+      "github": "github-username",
+      "role": "Backend Developer"
+    }
   ],
-  "discord_handle": "yourhandle#1234",
-  "contact_email": "yourteam@example.com",
-  "team_members": [
-    { "name": "Member 1", "role": "Fullstack Developer" },
-    { "name": "Member 2", "role": "AI Researcher" }
-  ]
+  "contribution_prs": [
+    "https://github.com/PlotSenseAI/PlotSense/pull/YOUR_PR_NUMBER"
+  ],
+  "description": "Brief description of your contributions",
+  "tech_stack": ["React", "Python", "FastAPI"],
+  "video_url": "https://youtube.com/watch?v=YOUR_VIDEO_ID",
+  "submission_date": "2025-09-30"
 }
 ```
 
-#### Step 3.3: Submit Pull Request
-1. **Commit** your changes
-2. **Push** to your fork
-3. **Open a Pull Request** to the `review` branch
-4. **Use this PR title format:** `Submission: PSH2025-XXX - [Project Name]`
+### Submission Steps
 
-### 4. Video Demo Requirements
-- **Duration:** 3-5 minutes
-- **Content:**
-  - Project overview and problem solved
-  - Live demo of key features
-  - Technical highlights
-  - Team introduction
-- **Platform:** YouTube (public/unlisted) or Google Drive
-- **Quality:** Clear audio and visible interface
+1. **Create Your Contribution PR**: Submit your PR to PlotSenseAI/PlotSense
+2. **Document Your Submission**: Create a JSON file in `submissions/september-2025/dev/your-team-name.json`
+3. **Submit Your Entry**: Create a PR to this repository with your submission file
 
-### 5. Social Media
-- **Platforms:** Twitter/X and LinkedIn
-- **Required hashtags:** `#PlotSenseAIHackathon2025 #HavilahAcademy`
-- **Tag:** `@HavilahAcademy` and `@PlotSenseAI`
-- **Content ideas:**
-  - Project screenshots
-  - Team working photos
-  - Behind-the-scenes videos
-  - Technical insights
+## Quality Guidelines
 
-### 6. Discord Verification
-Post in the `#submissions` channel with:
-```
-🚀 **Submission Complete!**
-**User ID:** PSH2025-XXX
-**Track:** [PlotSense ML or PlotSense Dev]
-**Project:** [Project Name]
-**Repo:** [GitHub link]
-```
+Your contributions will be evaluated based on:
 
-## ⚠️ Common Mistakes to Avoid
+- **Code Quality**: Clean, maintainable, well-documented code
+- **Impact**: How meaningful and useful your contribution is
+- **Testing**: Adequate test coverage
+- **Documentation**: Clear documentation of changes
+- **Best Practices**: Following project conventions and standards
+- **Completeness**: Fully implemented features without breaking existing functionality
 
-1. **Wrong repository naming** - Must include your User ID
-2. **Private repositories** - Must be public for judging
-3. **Missing User ID** - Include in repo name and README
-4. **Incomplete JSON** - All required fields must be filled
-5. **Wrong branch** - Submit PR to `review` branch, not `main`
-6. **Invalid email** - Use a working email for communication
-7. **Missing video** - Demo video is required
-8. **Late submission** - Submit before deadline
+## Examples of Good Contributions
 
-## 🔍 Validation Checklist
+### Feature Development
+- Implement a new data visualization component
+- Add export functionality for reports
+- Create a user preferences system
 
-Before submitting, verify:
-- [ ] Google Form completed and User ID received
-- [ ] Project repository is public
-- [ ] Repository name includes User ID
-- [ ] README.md includes all required sections
-- [ ] JSON file created in correct track directory
-- [ ] JSON file includes correct track field
-- [ ] JSON file follows exact template format
-- [ ] All team member information is accurate
-- [ ] Contact email is valid and monitored
-- [ ] Demo video is accessible and within time limit
-- [ ] Posted on Twitter/X and LinkedIn with required hashtags
-- [ ] PR submitted to `review` branch
-- [ ] Discord post in `#submissions` channel
+### Bug Fixes
+- Fix authentication issues
+- Resolve data processing errors
+- Address UI rendering problems
 
-## 🏆 Judging Criteria
+### Documentation
+- Create comprehensive API documentation
+- Write setup guides for different platforms
+- Add inline code documentation
 
-Projects will be evaluated on:
-1. **Innovation & Creativity** (25%)
-2. **Technical Implementation** (25%)
-3. **User Experience** (20%)
-4. **Business Viability** (15%)
-5. **Presentation Quality** (15%)
+### Performance
+- Optimize database queries
+- Improve frontend rendering performance
+- Reduce bundle size
 
-## 🆘 Need Help?
+## Tips for Success
 
-- **Discord:** Ask in the `#help` channel
-- **Documentation:** Check this repository's README
-- **Technical Issues:** Create an issue in this repository
+1. **Start Early**: Give yourself time to understand the codebase
+2. **Communicate**: Ask questions in GitHub issues or discussions
+3. **Review Existing Code**: Understand the project structure and patterns
+4. **Test Thoroughly**: Ensure your changes don't break existing features
+5. **Document Well**: Make it easy for reviewers to understand your changes
+6. **Be Responsive**: Address feedback on your PR promptly
+
+## Need Help?
+
+- **Technical Roadmap**: Review the [PlotSense Technical Roadmap](https://plotsenseai.gitbook.io/plotsense-technical-roadmap/) for contribution ideas
+- **Project Issues**: Check the [PlotSense Issues](https://github.com/PlotSenseAI/PlotSense/issues)
+- **Discussions**: Join conversations in GitHub Discussions
+- **Documentation**: Review the PlotSense project documentation
+
+## Important Notes
+
+- All contributions must be original work
+- Ensure you have the right to submit the code
+- Follow the PlotSense Code of Conduct
+- Respect the project maintainers' time and feedback
+- Multiple small, focused PRs are better than one large PR
+
+## Submission Deadline
+
+Check the hackathon announcement for the official submission deadline. Late submissions may not be accepted.
 
 ---
 
-**We're excited to see what you build! 🚀**
+**Good luck with your contributions! We look forward to seeing your work on PlotSense.**
