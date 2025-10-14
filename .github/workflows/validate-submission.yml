@@ -12,9 +12,10 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: read # checkout code
-      pull-requests: write # comment on PR
-      issues: write # update PR comments
+      contents: read
+      pull-requests: write
+      issues: write
+      checks: write
 
     steps:
       - name: Checkout code
@@ -223,25 +224,23 @@ jobs:
           failed_count = validation_report.count('[FAIL]')
           passed_count = validation_report.count('[PASS]')
 
-          if "VALIDATION FAILED" in validation_report or "PARTIAL VALIDATION" in validation_report:
-              print("::error title=Validation Failed::Your submission has validation errors. Please check the details below and in the PR comment.")
+          if "VALIDATION FAILED" in validation_report:
+              print("::error title=Validation Failed::Your submission has validation errors. Please check the PR comment for details.")
 
               # Print all failed checks as errors
-              print("\n--- FAILED CHECKS ---")
               for line in validation_report.split('\n'):
                   if '[FAIL]' in line:
                       error_msg = line.replace('- [FAIL]', '').strip()
-                      print(f"::error title=Failed Check::{error_msg}")
+                      print(f"::error::{error_msg}")
 
-              # Print all passed checks as notices so participants can see what they got right
-              print("\n--- PASSED CHECKS ---")
+              # Print all passed checks as notices
               for line in validation_report.split('\n'):
                   if '[PASS]' in line:
                       pass_msg = line.replace('- [PASS]', '').strip()
-                      print(f"::notice title=Passed Check::{pass_msg}")
+                      print(f"::notice::{pass_msg}")
 
               # Print summary
-              print(f"::error title=Summary::{failed_count} check(s) failed, {passed_count} check(s) passed. Review the PR comment for full details and fix instructions.")
+              print(f"::error::{failed_count} check(s) failed, {passed_count} check(s) passed. See PR comment for fix instructions.")
 
               sys.exit(1)
           else:
@@ -251,33 +250,11 @@ jobs:
               for line in validation_report.split('\n'):
                   if '[PASS]' in line:
                       pass_msg = line.replace('- [PASS]', '').strip()
-                      print(f"::notice title=Passed Check::{pass_msg}")
+                      print(f"::notice::{pass_msg}")
 
               # Print summary of successes
-              print(f"::notice title=Summary::All {passed_count} validation checks passed successfully!")
+              print(f"::notice::All {passed_count} validation checks passed successfully!")
           EOF
-
-      - name: Create validation status summary
-        if: always()
-        id: validation-status
-        run: |
-          if [ -f validation_results.txt ]; then
-            # Extract key information for status
-            if grep -q "VALIDATION FAILED" validation_results.txt; then
-              echo "status=failed" >> $GITHUB_OUTPUT
-              FAILED_COUNT=$(grep -c "\[FAIL\]" validation_results.txt || echo "0")
-              echo "summary=$FAILED_COUNT validation check(s) failed" >> $GITHUB_OUTPUT
-            elif grep -q "VALIDATION PASSED" validation_results.txt; then
-              echo "status=passed" >> $GITHUB_OUTPUT
-              echo "summary=All validation checks passed" >> $GITHUB_OUTPUT
-            else
-              echo "status=unknown" >> $GITHUB_OUTPUT
-              echo "summary=Unable to determine validation status" >> $GITHUB_OUTPUT
-            fi
-          else
-            echo "status=error" >> $GITHUB_OUTPUT
-            echo "summary=Validation file not found" >> $GITHUB_OUTPUT
-          fi
 
       - name: Comment on PR
         if: always()
