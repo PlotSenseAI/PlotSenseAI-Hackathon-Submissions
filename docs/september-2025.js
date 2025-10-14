@@ -1,10 +1,16 @@
 let allSubmissions = [];
+let metricsData = null;
 let filteredTeam = null;
 
 async function loadSubmissions() {
   try {
-    const response = await fetch('data/september-2025/submissions.json', { cache: 'no-store' });
-    allSubmissions = await response.json();
+    const [submissionsResponse, metricsResponse] = await Promise.all([
+      fetch('data/september-2025/submissions.json', { cache: 'no-store' }),
+      fetch('data/september-2025/metrics.json', { cache: 'no-store' })
+    ]);
+
+    allSubmissions = await submissionsResponse.json();
+    metricsData = await metricsResponse.json();
 
     // Check if we have a team filter in URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -31,21 +37,20 @@ function updateDashboard() {
       )
     : allSubmissions;
 
+  // Get PR data from metrics
+  const prData = metricsData?.prs || { total_open: 0, total_merged: 0, open_prs: [], merged_prs: [] };
+
   // Calculate metrics
   const totalSubmissions = displaySubmissions.length;
-  const openPRs = displaySubmissions.filter(s => s.status === 'open').length;
-  const mergedPRs = displaySubmissions.filter(s => s.status === 'merged').length;
+  const openPRs = prData.total_open;
+  const mergedPRs = prData.total_merged;
   const totalTeams = displaySubmissions.length;
 
   // ML Track
   const mlSubmissions = displaySubmissions.filter(s => s.track === 'PlotSense ML');
-  const mlOpen = mlSubmissions.filter(s => s.status === 'open').length;
-  const mlMerged = mlSubmissions.filter(s => s.status === 'merged').length;
 
   // Dev Track
   const devSubmissions = displaySubmissions.filter(s => s.track === 'PlotSense Dev');
-  const devOpen = devSubmissions.filter(s => s.status === 'open').length;
-  const devMerged = devSubmissions.filter(s => s.status === 'merged').length;
 
   // Update stats
   document.getElementById('total-submissions').textContent = totalSubmissions;
@@ -53,60 +58,86 @@ function updateDashboard() {
   document.getElementById('merged-prs').textContent = mergedPRs;
   document.getElementById('total-teams').textContent = totalTeams;
 
-  // Update track summary
-  document.getElementById('ml-open').textContent = mlOpen;
-  document.getElementById('ml-merged').textContent = mlMerged;
+  // Update track summary (show breakdown of PRs by track if available)
+  document.getElementById('ml-open').textContent = '-';
+  document.getElementById('ml-merged').textContent = '-';
   document.getElementById('ml-total').textContent = mlSubmissions.length;
 
-  document.getElementById('dev-open').textContent = devOpen;
-  document.getElementById('dev-merged').textContent = devMerged;
+  document.getElementById('dev-open').textContent = '-';
+  document.getElementById('dev-merged').textContent = '-';
   document.getElementById('dev-total').textContent = devSubmissions.length;
 
   document.getElementById('all-open').textContent = openPRs;
   document.getElementById('all-merged').textContent = mergedPRs;
   document.getElementById('all-total').textContent = totalSubmissions;
 
-  // Render submissions table
-  renderSubmissionsTable(displaySubmissions);
+  // Render submissions table with PR data
+  renderSubmissionsTable(displaySubmissions, prData);
 }
 
-function renderSubmissionsTable(submissions) {
+function renderSubmissionsTable(submissions, prData) {
   const tbody = document.getElementById('submissions-list');
 
-  if (submissions.length === 0) {
+  // Combine submissions with PR data
+  const allPRs = [...(prData.open_prs || []), ...(prData.merged_prs || [])];
+
+  if (submissions.length === 0 && allPRs.length === 0) {
     tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 2rem; color: #6b7280;">No submissions found.</td></tr>';
     return;
   }
 
-  tbody.innerHTML = submissions.map((submission, index) => {
-    const statusClass = submission.status === 'open' ? 'status-open' :
-                        submission.status === 'merged' ? 'status-merged' :
+  // Create a map of submission IDs to their data
+  const submissionMap = new Map();
+  submissions.forEach(sub => {
+    submissionMap.set(sub.id, sub);
+  });
+
+  // Render PRs
+  const prRows = allPRs.map((pr, index) => {
+    const prTitle = pr.title || 'Untitled PR';
+    const prNumber = pr.number;
+    const prState = pr.state;
+    const prUrl = pr.html_url;
+
+    // Try to extract team info from PR title (format: "Submission: PSH2025-XXX - Project Name")
+    const idMatch = prTitle.match(/PSH2025-\d{3}/);
+    const submissionId = idMatch ? idMatch[0] : null;
+    const submission = submissionId ? submissionMap.get(submissionId) : null;
+
+    const statusClass = prState === 'open' ? 'status-open' :
+                        prState === 'merged' ? 'status-merged' :
                         'status-closed';
 
-    const prLink = submission.pr_url
-      ? `<a href="${submission.pr_url}" class="pr-link" target="_blank" rel="noopener noreferrer">View PR</a>`
+    const teamName = submission?.team_name || pr.user || 'Unknown Team';
+    const projectName = submission?.project_name || prTitle.split(' - ')[1] || '';
+    const track = submission?.track || 'Unknown';
+
+    const prLink = prUrl
+      ? `<a href="${prUrl}" class="pr-link" target="_blank" rel="noopener noreferrer">PR #${prNumber}</a>`
       : '<span style="color: #9ca3af;">No PR</span>';
 
-    const rowId = `team-${index}`;
+    const rowId = `pr-${index}`;
     const highlightClass = filteredTeam &&
-      (submission.team_name?.toLowerCase().includes(filteredTeam.toLowerCase()) ||
-       submission.project_name?.toLowerCase().includes(filteredTeam.toLowerCase()))
+      (teamName?.toLowerCase().includes(filteredTeam.toLowerCase()) ||
+       projectName?.toLowerCase().includes(filteredTeam.toLowerCase()))
       ? 'highlight' : '';
 
     return `
       <tr id="${rowId}" class="${highlightClass}">
-        <td><strong>${submission.team_name || 'Unknown Team'}</strong><br>
-            <small style="color: #6b7280;">${submission.project_name || 'No project name'}</small>
+        <td><strong>${teamName}</strong><br>
+            <small style="color: #6b7280;">${projectName}</small>
         </td>
-        <td>${submission.track || 'Unknown'}</td>
-        <td><span class="status-badge ${statusClass}">${submission.status || 'pending'}</span></td>
+        <td>${track}</td>
+        <td><span class="status-badge ${statusClass}">${prState}</span></td>
         <td>${prLink}</td>
       </tr>
     `;
   }).join('');
 
+  tbody.innerHTML = prRows || '<tr><td colspan="4" style="text-align: center; padding: 2rem; color: #6b7280;">No submissions found.</td></tr>';
+
   // Scroll to first highlighted row if filtered
-  if (filteredTeam && submissions.length > 0) {
+  if (filteredTeam && allPRs.length > 0) {
     setTimeout(() => {
       const firstHighlight = document.querySelector('.highlight');
       if (firstHighlight) {
