@@ -219,23 +219,42 @@ jobs:
           with open(os.environ.get('GITHUB_STEP_SUMMARY', 'summary.md'), 'w') as f:
               f.write(validation_report)
 
-          # Print detailed error messages for failed checks
+          # Print detailed messages for all checks
+          failed_count = validation_report.count('[FAIL]')
+          passed_count = validation_report.count('[PASS]')
+
           if "VALIDATION FAILED" in validation_report or "PARTIAL VALIDATION" in validation_report:
               print("::error title=Validation Failed::Your submission has validation errors. Please check the details below and in the PR comment.")
 
-              # Extract and print each failed check as a separate error
+              # Print all failed checks as errors
+              print("\n--- FAILED CHECKS ---")
               for line in validation_report.split('\n'):
                   if '[FAIL]' in line:
                       error_msg = line.replace('- [FAIL]', '').strip()
                       print(f"::error title=Failed Check::{error_msg}")
 
-              # Print summary of failures
-              failed_count = validation_report.count('[FAIL]')
-              print(f"::error title=Summary::{failed_count} validation check(s) failed. Review the PR comment for full details and fix instructions.")
+              # Print all passed checks as notices so participants can see what they got right
+              print("\n--- PASSED CHECKS ---")
+              for line in validation_report.split('\n'):
+                  if '[PASS]' in line:
+                      pass_msg = line.replace('- [PASS]', '').strip()
+                      print(f"::notice title=Passed Check::{pass_msg}")
+
+              # Print summary
+              print(f"::error title=Summary::{failed_count} check(s) failed, {passed_count} check(s) passed. Review the PR comment for full details and fix instructions.")
 
               sys.exit(1)
           else:
               print("::notice title=Validation Passed::All validation checks passed successfully!")
+
+              # Print each passed check as a notice for visibility
+              for line in validation_report.split('\n'):
+                  if '[PASS]' in line:
+                      pass_msg = line.replace('- [PASS]', '').strip()
+                      print(f"::notice title=Passed Check::{pass_msg}")
+
+              # Print summary of successes
+              print(f"::notice title=Summary::All {passed_count} validation checks passed successfully!")
           EOF
 
       - name: Create validation status summary
