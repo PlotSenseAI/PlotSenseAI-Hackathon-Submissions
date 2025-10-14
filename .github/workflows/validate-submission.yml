@@ -219,12 +219,46 @@ jobs:
           with open(os.environ.get('GITHUB_STEP_SUMMARY', 'summary.md'), 'w') as f:
               f.write(validation_report)
 
+          # Print detailed error messages for failed checks
           if "VALIDATION FAILED" in validation_report or "PARTIAL VALIDATION" in validation_report:
-              print("::error::Validation failed - check results for details")
+              print("::error title=Validation Failed::Your submission has validation errors. Please check the details below and in the PR comment.")
+
+              # Extract and print each failed check as a separate error
+              for line in validation_report.split('\n'):
+                  if '[FAIL]' in line:
+                      error_msg = line.replace('- [FAIL]', '').strip()
+                      print(f"::error title=Failed Check::{error_msg}")
+
+              # Print summary of failures
+              failed_count = validation_report.count('[FAIL]')
+              print(f"::error title=Summary::{failed_count} validation check(s) failed. Review the PR comment for full details and fix instructions.")
+
               sys.exit(1)
           else:
-              print("::notice::Validation passed successfully!")
+              print("::notice title=Validation Passed::All validation checks passed successfully!")
           EOF
+
+      - name: Create validation status summary
+        if: always()
+        id: validation-status
+        run: |
+          if [ -f validation_results.txt ]; then
+            # Extract key information for status
+            if grep -q "VALIDATION FAILED" validation_results.txt; then
+              echo "status=failed" >> $GITHUB_OUTPUT
+              FAILED_COUNT=$(grep -c "\[FAIL\]" validation_results.txt || echo "0")
+              echo "summary=$FAILED_COUNT validation check(s) failed" >> $GITHUB_OUTPUT
+            elif grep -q "VALIDATION PASSED" validation_results.txt; then
+              echo "status=passed" >> $GITHUB_OUTPUT
+              echo "summary=All validation checks passed" >> $GITHUB_OUTPUT
+            else
+              echo "status=unknown" >> $GITHUB_OUTPUT
+              echo "summary=Unable to determine validation status" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "status=error" >> $GITHUB_OUTPUT
+            echo "summary=Validation file not found" >> $GITHUB_OUTPUT
+          fi
 
       - name: Comment on PR
         if: always()
@@ -261,6 +295,7 @@ jobs:
                 comment_id: botComment.id,
                 body: comment
               });
+              console.log('Updated existing validation comment');
             } else {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
@@ -268,4 +303,5 @@ jobs:
                 issue_number: context.issue.number,
                 body: comment
               });
+              console.log('Created new validation comment');
             }
