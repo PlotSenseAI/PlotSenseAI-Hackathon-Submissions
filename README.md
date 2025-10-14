@@ -44,8 +44,11 @@ Create a **public GitHub repository** with:
 
 ### Step 3: Submit to This Repository
 
+> **Important:** Submit your entry to the official PlotSense Hackathon Submissions repository:
+> **https://github.com/PlotSenseAI/PlotSenseAI-Hackathon-Submissions/**
+
 #### 🍴 Fork & Create Submission
-1. **Fork** this repository to your GitHub account
+1. **Fork** the [PlotSenseAI-Hackathon-Submissions](https://github.com/PlotSenseAI/PlotSenseAI-Hackathon-Submissions) repository to your GitHub account
 2. **Choose your track** and navigate to the appropriate directory:
    - **PlotSense ML Track**: `submissions/plotsense-2025-ml/`
    - **PlotSense Dev Track**: `submissions/plotsense-2025-dev/`
