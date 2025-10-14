@@ -268,6 +268,12 @@
       margin: 1.5rem 0;
     }
 
+    @media (min-width: 640px) {
+      .hackathon-stats {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
     .stat-item {
       text-align: center;
       padding: 1rem;
@@ -420,7 +426,7 @@
         <!-- September 2025 Hackathon -->
         <div class="hackathon-card">
           <span class="hackathon-date">September 2025</span>
-          <h3 class="hackathon-title">PlotSense Hackathon 2025</h3>
+          <h3 class="hackathon-title">Plotsense Hackathon September 2025</h3>
           <p style="color: var(--gray-600); margin-bottom: 1rem;">
             The inaugural PlotSenseAI hackathon featuring ML and Development tracks.
           </p>
@@ -432,6 +438,14 @@
             <div class="stat-item">
               <span class="stat-value" id="sept-2025-submissions">-</span>
               <span class="stat-label">Submissions</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value" id="sept-2025-open-prs">-</span>
+              <span class="stat-label">Open PRs</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value" id="sept-2025-merged-prs">-</span>
+              <span class="stat-label">Merged PRs</span>
             </div>
           </div>
           <a href="september-2025.html" class="hackathon-link">View Dashboard →</a>
@@ -482,9 +496,15 @@
           hackathonUrl: 'september-2025.html'
         }));
 
+        // Load metrics including PR data
+        const metricsResponse = await fetch('data/september-2025/metrics.json', { cache: 'no-store' });
+        const metricsData = await metricsResponse.json();
+
         // Update stats
         document.getElementById('sept-2025-teams').textContent = sept2025Data.length;
         document.getElementById('sept-2025-submissions').textContent = sept2025Data.length;
+        document.getElementById('sept-2025-open-prs').textContent = metricsData.prs?.total_open || 0;
+        document.getElementById('sept-2025-merged-prs').textContent = metricsData.prs?.total_merged || 0;
 
         // Future: Load other hackathon data here
         // const futureResponse = await fetch('data/future-hackathon/submissions.json');
@@ -494,6 +514,8 @@
         console.error('Failed to load hackathon data:', err);
         document.getElementById('sept-2025-teams').textContent = '0';
         document.getElementById('sept-2025-submissions').textContent = '0';
+        document.getElementById('sept-2025-open-prs').textContent = '0';
+        document.getElementById('sept-2025-merged-prs').textContent = '0';
       }
     }
 

@@ -31,6 +31,7 @@ jobs:
           pip install jsonschema requests
 
       - name: Validate submission
+        id: validate
         run: |
           python << 'EOF'
           import json
@@ -136,19 +137,76 @@ jobs:
                   else:
                       validation_results.append("INFO: **Contribution PRs** - Not required for ML track")
 
-              # Build report
+              # Build detailed report
               report = "## Submission Validation Results\n\n"
-              report += f"**File:** `{json_file.name}`\n\n"
+              report += f"**Submission File:** `{json_file.name}`\n\n"
 
-              if missing_fields:
+              # Determine overall status
+              failed_checks = [r for r in results + validation_results if "FAIL" in r]
+              passed_checks = [r for r in results + validation_results if "PASS" in r]
+              info_checks = [r for r in results + validation_results if "INFO" in r]
+
+              if missing_fields or any("FAIL" in r for r in validation_results):
                   report += "### VALIDATION FAILED\n\n"
-              elif any("FAIL" in r for r in validation_results):
-                  report += "### PARTIAL VALIDATION\n\n"
+                  report += f"**Status:** {len(failed_checks)} check(s) failed, {len(passed_checks)} check(s) passed\n\n"
+                  report += "---\n\n"
               else:
                   report += "### VALIDATION PASSED\n\n"
+                  report += f"**Status:** All {len(passed_checks)} checks passed successfully!\n\n"
+                  report += "---\n\n"
 
-              report += "**Required Fields Check:**\n" + "\n".join(f"- {r}" for r in results) + "\n\n"
-              report += "**Additional Validations:**\n" + "\n".join(f"- {r}" for r in validation_results) + "\n"
+              # Show failed checks first if any
+              if failed_checks:
+                  report += "### Failed Checks (Action Required)\n\n"
+                  report += "**Please fix the following issues:**\n\n"
+                  for i, check in enumerate(failed_checks, 1):
+                      clean_check = check.replace("FAIL: ", "")
+                      report += f"{i}. {clean_check}\n"
+                  report += "\n---\n\n"
+
+              # Show all required fields check
+              report += "### Required Fields\n\n"
+              for result in results:
+                  if "PASS" in result:
+                      clean_result = result.replace("PASS: ", "")
+                      report += f"- [PASS] {clean_result}\n"
+                  elif "FAIL" in result:
+                      clean_result = result.replace("FAIL: ", "")
+                      report += f"- [FAIL] {clean_result}\n"
+              report += "\n"
+
+              # Show additional validations
+              report += "### Additional Validations\n\n"
+              for result in validation_results:
+                  if "PASS" in result:
+                      clean_result = result.replace("PASS: ", "")
+                      report += f"- [PASS] {clean_result}\n"
+                  elif "FAIL" in result:
+                      clean_result = result.replace("FAIL: ", "")
+                      report += f"- [FAIL] {clean_result}\n"
+                  elif "INFO" in result:
+                      clean_result = result.replace("INFO: ", "")
+                      report += f"- [INFO] {clean_result}\n"
+              report += "\n"
+
+              # Add helpful instructions if there are failures
+              if failed_checks:
+                  report += "---\n\n"
+                  report += "### How to Fix\n\n"
+                  report += "1. Review the **Failed Checks** section above\n"
+                  report += "2. Update your submission JSON file with the required information\n"
+                  report += "3. Commit and push your changes to re-trigger validation\n"
+                  report += "4. Ensure your repository URL follows the format: `plotsenseai-hackathon-PSH2025-XXX`\n"
+                  report += "5. For Dev track submissions, include valid PR links to the PlotSense repository\n\n"
+
+              # Summary
+              report += "---\n\n"
+              report += "### Validation Summary\n\n"
+              report += f"- **Total Checks:** {len(results) + len(validation_results)}\n"
+              report += f"- **Passed:** {len(passed_checks)}\n"
+              report += f"- **Failed:** {len(failed_checks)}\n"
+              if info_checks:
+                  report += f"- **Info:** {len(info_checks)}\n"
 
               return report
 
@@ -157,11 +215,15 @@ jobs:
           with open('validation_results.txt', 'w') as f:
               f.write(validation_report)
 
+          # Write to GitHub Actions summary
+          with open(os.environ.get('GITHUB_STEP_SUMMARY', 'summary.md'), 'w') as f:
+              f.write(validation_report)
+
           if "VALIDATION FAILED" in validation_report or "PARTIAL VALIDATION" in validation_report:
-              print("Validation failed - check results")
+              print("::error::Validation failed - check results for details")
               sys.exit(1)
           else:
-              print("Validation passed!")
+              print("::notice::Validation passed successfully!")
           EOF
 
       - name: Comment on PR
