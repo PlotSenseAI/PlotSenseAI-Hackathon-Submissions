@@ -1,7 +1,8 @@
 name: Validate Submission
 
 on:
-  pull_request:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
     branches: [review]
     paths:
       - "submissions/plotsense-2025-ml/*.json"
@@ -12,13 +13,16 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: read # checkout code
-      pull-requests: write # comment on PR
-      issues: write # update PR comments
+      contents: read
+      pull-requests: write
+      issues: write
+      checks: write
 
     steps:
-      - name: Checkout code
+      - name: Checkout PR code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -31,6 +35,7 @@ jobs:
           pip install jsonschema requests
 
       - name: Validate submission
+        id: validate
         run: |
           python << 'EOF'
           import json
@@ -136,19 +141,76 @@ jobs:
                   else:
                       validation_results.append("INFO: **Contribution PRs** - Not required for ML track")
 
-              # Build report
+              # Build detailed report
               report = "## Submission Validation Results\n\n"
-              report += f"**File:** `{json_file.name}`\n\n"
+              report += f"**Submission File:** `{json_file.name}`\n\n"
 
-              if missing_fields:
+              # Determine overall status
+              failed_checks = [r for r in results + validation_results if "FAIL" in r]
+              passed_checks = [r for r in results + validation_results if "PASS" in r]
+              info_checks = [r for r in results + validation_results if "INFO" in r]
+
+              if missing_fields or any("FAIL" in r for r in validation_results):
                   report += "### VALIDATION FAILED\n\n"
-              elif any("FAIL" in r for r in validation_results):
-                  report += "### PARTIAL VALIDATION\n\n"
+                  report += f"**Status:** {len(failed_checks)} check(s) failed, {len(passed_checks)} check(s) passed\n\n"
+                  report += "---\n\n"
               else:
                   report += "### VALIDATION PASSED\n\n"
+                  report += f"**Status:** All {len(passed_checks)} checks passed successfully!\n\n"
+                  report += "---\n\n"
 
-              report += "**Required Fields Check:**\n" + "\n".join(f"- {r}" for r in results) + "\n\n"
-              report += "**Additional Validations:**\n" + "\n".join(f"- {r}" for r in validation_results) + "\n"
+              # Show failed checks first if any
+              if failed_checks:
+                  report += "### Failed Checks (Action Required)\n\n"
+                  report += "**Please fix the following issues:**\n\n"
+                  for i, check in enumerate(failed_checks, 1):
+                      clean_check = check.replace("FAIL: ", "")
+                      report += f"{i}. {clean_check}\n"
+                  report += "\n---\n\n"
+
+              # Show all required fields check
+              report += "### Required Fields\n\n"
+              for result in results:
+                  if "PASS" in result:
+                      clean_result = result.replace("PASS: ", "")
+                      report += f"- [PASS] {clean_result}\n"
+                  elif "FAIL" in result:
+                      clean_result = result.replace("FAIL: ", "")
+                      report += f"- [FAIL] {clean_result}\n"
+              report += "\n"
+
+              # Show additional validations
+              report += "### Additional Validations\n\n"
+              for result in validation_results:
+                  if "PASS" in result:
+                      clean_result = result.replace("PASS: ", "")
+                      report += f"- [PASS] {clean_result}\n"
+                  elif "FAIL" in result:
+                      clean_result = result.replace("FAIL: ", "")
+                      report += f"- [FAIL] {clean_result}\n"
+                  elif "INFO" in result:
+                      clean_result = result.replace("INFO: ", "")
+                      report += f"- [INFO] {clean_result}\n"
+              report += "\n"
+
+              # Add helpful instructions if there are failures
+              if failed_checks:
+                  report += "---\n\n"
+                  report += "### How to Fix\n\n"
+                  report += "1. Review the **Failed Checks** section above\n"
+                  report += "2. Update your submission JSON file with the required information\n"
+                  report += "3. Commit and push your changes to re-trigger validation\n"
+                  report += "4. Ensure your repository URL follows the format: `plotsenseai-hackathon-PSH2025-XXX`\n"
+                  report += "5. For Dev track submissions, include valid PR links to the PlotSense repository\n\n"
+
+              # Summary
+              report += "---\n\n"
+              report += "### Validation Summary\n\n"
+              report += f"- **Total Checks:** {len(results) + len(validation_results)}\n"
+              report += f"- **Passed:** {len(passed_checks)}\n"
+              report += f"- **Failed:** {len(failed_checks)}\n"
+              if info_checks:
+                  report += f"- **Info:** {len(info_checks)}\n"
 
               return report
 
@@ -157,53 +219,103 @@ jobs:
           with open('validation_results.txt', 'w') as f:
               f.write(validation_report)
 
-          if "VALIDATION FAILED" in validation_report or "PARTIAL VALIDATION" in validation_report:
-              print("Validation failed - check results")
+          # Write to GitHub Actions summary
+          with open(os.environ.get('GITHUB_STEP_SUMMARY', 'summary.md'), 'w') as f:
+              f.write(validation_report)
+
+          # Print detailed messages for all checks
+          failed_count = validation_report.count('[FAIL]')
+          passed_count = validation_report.count('[PASS]')
+
+          if "VALIDATION FAILED" in validation_report:
+              print("::error title=Validation Failed::Your submission has validation errors. Please check the PR comment for details.")
+
+              # Print all failed checks as errors
+              for line in validation_report.split('\n'):
+                  if '[FAIL]' in line:
+                      error_msg = line.replace('- [FAIL]', '').strip()
+                      print(f"::error::{error_msg}")
+
+              # Print all passed checks as notices
+              for line in validation_report.split('\n'):
+                  if '[PASS]' in line:
+                      pass_msg = line.replace('- [PASS]', '').strip()
+                      print(f"::notice::{pass_msg}")
+
+              # Print summary
+              print(f"::error::{failed_count} check(s) failed, {passed_count} check(s) passed. See PR comment for fix instructions.")
+
               sys.exit(1)
           else:
-              print("Validation passed!")
+              print("::notice title=Validation Passed::All validation checks passed successfully!")
+
+              # Print each passed check as a notice for visibility
+              for line in validation_report.split('\n'):
+                  if '[PASS]' in line:
+                      pass_msg = line.replace('- [PASS]', '').strip()
+                      print(f"::notice::{pass_msg}")
+
+              # Print summary of successes
+              print(f"::notice::All {passed_count} validation checks passed successfully!")
           EOF
 
       - name: Comment on PR
         if: always()
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
 
+            // Read validation results
             let comment = '';
             try {
               const results = fs.readFileSync('validation_results.txt', 'utf8');
               comment = results;
+              console.log('Successfully read validation results file');
             } catch (error) {
+              console.error('Error reading validation results:', error);
               comment = '## Submission Validation Results\n\nERROR: **Validation failed to run properly. Please check the workflow logs.**\n\n';
             }
 
             comment += '\n---\n*This is an automated check. Please ensure all requirements are met before requesting review.*';
 
-            const comments = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number
-            });
-
-            const botComment = comments.data.find(comment =>
-              comment.user.login === 'github-actions[bot]' &&
-              comment.body.includes('Submission Validation Results')
-            );
-
-            if (botComment) {
-              await github.rest.issues.updateComment({
+            try {
+              // Get all comments on the PR
+              const comments = await github.rest.issues.listComments({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                comment_id: botComment.id,
-                body: comment
+                issue_number: context.issue.number
               });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: comment
-              });
+
+              console.log(`Found ${comments.data.length} existing comments on PR #${context.issue.number}`);
+
+              // Look for existing bot comment
+              const botComment = comments.data.find(comment =>
+                comment.user.login === 'github-actions[bot]' &&
+                comment.body.includes('Submission Validation Results')
+              );
+
+              if (botComment) {
+                // Update existing comment
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: botComment.id,
+                  body: comment
+                });
+                console.log(`Updated existing validation comment (ID: ${botComment.id})`);
+              } else {
+                // Create new comment
+                const newComment = await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body: comment
+                });
+                console.log(`Created new validation comment (ID: ${newComment.data.id})`);
+              }
+            } catch (error) {
+              console.error('Error posting comment to PR:', error);
+              core.setFailed(`Failed to post validation comment: ${error.message}`);
             }
