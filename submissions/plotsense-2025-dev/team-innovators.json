@@ -1,0 +1,22 @@
+{
+  "id": "PSH2025-002",
+  "track": "PlotSense Dev",
+  "project_name": "Advanced Analytics Module",
+  "team_name": "Team Innovators",
+  "repo_url": "https://github.com/team-innovators/plotsenseai-hackathon-PSH2025-002",
+  "video_url": "https://youtube.com/watch?v=innovators-demo",
+  "contribution_prs": [
+    "https://github.com/PlotSenseAI/PlotSense/pull/123",
+    "https://github.com/PlotSenseAI/PlotSense/pull/124"
+  ],
+  "social_links": [
+    "https://x.com/teaminnovators/status/987654321",
+    "https://linkedin.com/posts/teaminnovators_plotsense-hackathon-dev"
+  ],
+  "discord_handle": "innovator#5678",
+  "contact_email": "innovators@example.com",
+  "team_members": [
+    { "name": "Alice Johnson", "role": "Fullstack Developer" },
+    { "name": "Bob Williams", "role": "AI Researcher" }
+  ]
+}
