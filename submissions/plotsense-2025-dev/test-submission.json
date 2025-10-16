@@ -1,0 +1,22 @@
+{
+  "id": "PSH2025-999",
+  "track": "PlotSense Dev",
+  "project_name": "Advanced Data Visualization Module",
+  "team_name": "Test Team Innovators",
+  "repo_url": "https://github.com/test-team/plotsenseai-hackathon-PSH2025-999",
+  "video_url": "https://youtube.com/watch?v=test-demo-video",
+  "contribution_prs": [
+    "https://github.com/plotsenseai/plotsenseai/pull/1",
+    "https://github.com/plotsenseai/plotsenseai/pull/2"
+  ],
+  "social_links": [
+    "https://x.com/testteam/status/12345",
+    "https://linkedin.com/posts/testteam_plotsense-hackathon"
+  ],
+  "discord_handle": "testuser#9999",
+  "contact_email": "test@example.com",
+  "team_members": [
+    { "name": "Test Developer 1", "role": "Full Stack Developer" },
+    { "name": "Test Developer 2", "role": "AI/ML Engineer" }
+  ]
+}
