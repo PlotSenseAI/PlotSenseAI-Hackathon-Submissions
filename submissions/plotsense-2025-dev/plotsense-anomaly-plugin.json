@@ -1,0 +1,23 @@
+{
+  "id": "PSH2025-157",
+  "track": "PlotSense Dev",
+  "project_name": "PlotSense Anomaly Plugin",
+  "team_name": "Kings Team",
+  "repo_url": "https://github.com/kingsoduah/PlotSenseAI-Hackathon-Submissions.git",
+  "video_url": "https://drive.google.com/file/d/1MwVCULj75e9uPjmg1U0082PMOlyNx6U2/view?usp=sharing",
+  "contribution_prs": [
+    "https://github.com/plotsenseai/plotsenseai/pull/123",
+    "https://github.com/plotsenseai/plotsenseai/pull/124"
+  ],
+  "social_links": [
+    "https://x.com/devekings/status/1975885288644960453",
+    "https://www.linkedin.com/posts/kings-oduah_plotsenseai-plotsenseaihackathon2025-havilahacademy-activity-7381652130459189248-qNae?utm_source=share&utm_medium=member_desktop&rcm=ACoAAEHkT1UBII70s0xxV5zXUX-tt19uP3ka0DI"
+  ],
+  "discord_handle": "yourdiscord#1234",
+  "contact_email": "your@email.com",
+  "team_members": [
+    { "name": "Kings", "role": "Fullstack Developer" },
+    { "name": "Member 1", "role": "Fullstack Developer" }
+  ]
+}
+
