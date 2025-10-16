@@ -142,8 +142,8 @@ Create or update your team's submission file:
 ### Submission Steps
 
 1. **Create Your Contribution PR**: Submit your PR to PlotSenseAI/PlotSense
-2. **Document Your Submission**: Create a JSON file in `submissions/september-2025/dev/your-team-name.json`
-3. **Submit Your Entry**: Create a PR to this repository with your submission file
+2. **Document Your Submission**: Create a JSON file in `submissions/plotsense-2025-dev/your-team-name.json`
+3. **Submit Your Entry**: Create a PR to the official [PlotSenseAI-Hackathon-Submissions](https://github.com/PlotSenseAI/PlotSenseAI-Hackathon-Submissions) repository with your submission file
 
 ## Quality Guidelines
 

@@ -36,13 +36,72 @@ jobs:
         pip install requests python-dateutil
 
     - name: Generate submission data
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         python << 'EOF'
         import json
         import os
         import glob
+        import requests
         from pathlib import Path
         from datetime import datetime, timezone
+
+        def fetch_pr_data():
+            """Fetch PR data from GitHub API"""
+            token = os.environ.get('GITHUB_TOKEN')
+            repo = os.environ.get('GITHUB_REPOSITORY', 'PlotSenseAI/PlotSenseAI-Hackathon-Submissions')
+
+            headers = {'Authorization': f'token {token}'} if token else {}
+
+            # Fetch open PRs targeting review branch
+            open_prs_url = f'https://api.github.com/repos/{repo}/pulls?state=open&base=review&per_page=100'
+            merged_prs_url = f'https://api.github.com/repos/{repo}/pulls?state=closed&base=review&per_page=100'
+
+            pr_data = {
+                'open_prs': [],
+                'merged_prs': [],
+                'total_open': 0,
+                'total_merged': 0
+            }
+
+            try:
+                # Get open PRs
+                response = requests.get(open_prs_url, headers=headers, timeout=10)
+                if response.status_code == 200:
+                    open_prs = response.json()
+                    pr_data['open_prs'] = [{
+                        'number': pr['number'],
+                        'title': pr['title'],
+                        'user': pr['user']['login'],
+                        'created_at': pr['created_at'],
+                        'html_url': pr['html_url'],
+                        'state': 'open'
+                    } for pr in open_prs]
+                    pr_data['total_open'] = len(pr_data['open_prs'])
+
+                # Get merged PRs
+                response = requests.get(merged_prs_url, headers=headers, timeout=10)
+                if response.status_code == 200:
+                    closed_prs = response.json()
+                    merged_prs = [pr for pr in closed_prs if pr.get('merged_at')]
+                    pr_data['merged_prs'] = [{
+                        'number': pr['number'],
+                        'title': pr['title'],
+                        'user': pr['user']['login'],
+                        'created_at': pr['created_at'],
+                        'merged_at': pr['merged_at'],
+                        'html_url': pr['html_url'],
+                        'state': 'merged'
+                    } for pr in merged_prs]
+                    pr_data['total_merged'] = len(pr_data['merged_prs'])
+
+                print(f"Fetched {pr_data['total_open']} open PRs and {pr_data['total_merged']} merged PRs")
+
+            except Exception as e:
+                print(f"Error fetching PR data: {e}")
+
+            return pr_data
 
         def collect_submissions():
             submissions = []
@@ -83,7 +142,7 @@ jobs:
 
             return submissions
 
-        def generate_metrics(submissions):
+        def generate_metrics(submissions, pr_data):
             if not submissions:
                 return {
                     'total_submissions': 0,
@@ -92,7 +151,8 @@ jobs:
                     'status_counts': {'validated': 0, 'pending': 0, 'failed': 0},
                     'tech_stack_usage': {},
                     'team_sizes': {},
-                    'submission_timeline': []
+                    'submission_timeline': [],
+                    'prs': pr_data
                 }
 
             metrics = {
@@ -102,7 +162,8 @@ jobs:
                 'status_counts': {'validated': 0, 'pending': 0, 'failed': 0},
                 'tech_stack_usage': {},
                 'team_sizes': {},
-                'submission_timeline': []
+                'submission_timeline': [],
+                'prs': pr_data
             }
 
             for track in ['PlotSense ML', 'PlotSense Dev']:
@@ -131,9 +192,12 @@ jobs:
 
             return metrics
 
+        # Fetch PR data
+        pr_data = fetch_pr_data()
+
         # Collect September 2025 submissions
         submissions = collect_submissions()
-        metrics = generate_metrics(submissions)
+        metrics = generate_metrics(submissions, pr_data)
 
         # Create directory structure for September 2025 hackathon
         os.makedirs('docs/data/september-2025', exist_ok=True)
