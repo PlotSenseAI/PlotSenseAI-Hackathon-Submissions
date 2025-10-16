@@ -1,0 +1,14 @@
+{
+  "id": "INVALID-ID",
+  "track": "PlotSense ML",
+  "project_name": "Incomplete ML Project",
+  "team_name": "Test Team Failed",
+  "repo_url": "not-a-valid-url",
+  "video_url": "",
+  "social_links": [],
+  "discord_handle": "",
+  "contact_email": "invalid-email",
+  "team_members": [
+    { "name": "Test Member" }
+  ]
+}
