@@ -304,7 +304,7 @@ jobs:
                   comment_id: botComment.id,
                   body: comment
                 });
-                console.log(`✅ Updated existing validation comment (ID: ${botComment.id})`);
+                console.log(`Updated existing validation comment (ID: ${botComment.id})`);
               } else {
                 // Create new comment
                 const newComment = await github.rest.issues.createComment({
@@ -313,9 +313,9 @@ jobs:
                   issue_number: context.issue.number,
                   body: comment
                 });
-                console.log(`✅ Created new validation comment (ID: ${newComment.data.id})`);
+                console.log(`Created new validation comment (ID: ${newComment.data.id})`);
               }
             } catch (error) {
-              console.error('❌ Error posting comment to PR:', error);
+              console.error('Error posting comment to PR:', error);
               core.setFailed(`Failed to post validation comment: ${error.message}`);
             }
