@@ -1,0 +1,271 @@
+name: Validate Submission
+
+on:
+  pull_request:
+    branches: [review]
+    paths:
+      - "submissions/plotsense-2025-ml/*.json"
+      - "submissions/plotsense-2025-dev/*.json"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read # checkout code
+      pull-requests: write # comment on PR
+      issues: write # update PR comments
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install jsonschema requests
+
+      - name: Validate submission
+        id: validate
+        run: |
+          python << 'EOF'
+          import json
+          import os
+          import re
+          import sys
+          from pathlib import Path
+
+          def validate_submission():
+              ml_dir = Path("submissions/plotsense-2025-ml")
+              dev_dir = Path("submissions/plotsense-2025-dev")
+
+              ml_files = list(ml_dir.glob("*.json")) if ml_dir.exists() else []
+              dev_files = list(dev_dir.glob("*.json")) if dev_dir.exists() else []
+              json_files = [f for f in (ml_files + dev_files) if f.name != "TEMPLATE.json"]
+
+              if not json_files:
+                  return "ERROR: **No submission JSON file found**\n\nPlease add your submission JSON file to the appropriate track directory:\n- `submissions/plotsense-2025-ml/`\n- `submissions/plotsense-2025-dev/`"
+
+              if len(json_files) > 1:
+                  return f"ERROR: **Multiple submission files found: {[f.name for f in json_files]}**\n\nPlease submit only one JSON file per team."
+
+              json_file = json_files[0]
+              try:
+                  with open(json_file, 'r') as f:
+                      data = json.load(f)
+              except json.JSONDecodeError as e:
+                  return f"ERROR: **Invalid JSON format in {json_file.name}**\n\nError: {str(e)}"
+
+              required_fields = {
+                  'id': 'User ID (e.g., PSH2025-023)',
+                  'track': 'Track (PlotSense ML or PlotSense Dev)',
+                  'project_name': 'Project name',
+                  'team_name': 'Team name',
+                  'repo_url': 'Repository URL',
+                  'video_url': 'Demo video URL',
+                  'social_links': 'Social media links',
+                  'discord_handle': 'Discord handle',
+                  'contact_email': 'Contact email',
+                  'team_members': 'Team members list'
+              }
+
+              results, missing_fields, validation_results = [], [], []
+
+              # Check required fields
+              for field, desc in required_fields.items():
+                  if field not in data or not data[field] or (isinstance(data[field], list) and not data[field]):
+                      results.append(f"FAIL: **{desc}** - Missing/empty: `{field}`")
+                      missing_fields.append(field)
+                  else:
+                      results.append(f"PASS: **{desc}** - Valid")
+
+              # User ID format
+              if 'id' in data and data['id']:
+                  if re.match(r'^PSH2025-\d{3}$', data['id']):
+                      validation_results.append("PASS: **User ID format** - Valid")
+                  else:
+                      validation_results.append(f"FAIL: **User ID format** - Invalid: `{data['id']}`")
+
+              # Track validation
+              if 'track' in data and data['track'] in ["PlotSense ML", "PlotSense Dev"]:
+                  validation_results.append(f"PASS: **Track** - {data['track']}")
+                  expected_dir = "plotsense-2025-ml" if data['track']=="PlotSense ML" else "plotsense-2025-dev"
+                  if json_file.parent.name != expected_dir:
+                      validation_results.append(f"FAIL: **Track directory** - Should be in `{expected_dir}/`")
+                  else:
+                      validation_results.append("PASS: **Track directory** - Correct")
+              else:
+                  validation_results.append("FAIL: **Track** - Invalid or missing")
+
+              # Repo URL
+              if 'repo_url' in data and 'github.com' in data['repo_url']:
+                  validation_results.append("PASS: **Repository URL** - Looks valid")
+              else:
+                  validation_results.append("FAIL: **Repository URL** - Invalid")
+
+              # Email
+              if 'contact_email' in data and re.match(r'^[^@]+@[^@]+\.[^@]+$', data['contact_email']):
+                  validation_results.append("PASS: **Email format** - Valid")
+              else:
+                  validation_results.append("FAIL: **Email format** - Invalid or missing")
+
+              # Team members
+              if isinstance(data.get('team_members', []), list) and all(isinstance(m, dict) and 'name' in m and 'role' in m for m in data['team_members']):
+                  validation_results.append(f"PASS: **Team members** - {len(data['team_members'])} valid")
+              else:
+                  validation_results.append("FAIL: **Team members** - Invalid format")
+
+              # Contribution PRs (required for Dev track only)
+              if 'track' in data and data['track'] == "PlotSense Dev":
+                  if 'contribution_prs' in data and isinstance(data['contribution_prs'], list) and data['contribution_prs']:
+                      valid_prs = all(isinstance(pr, str) and 'github.com' in pr and '/pull/' in pr for pr in data['contribution_prs'])
+                      if valid_prs:
+                          validation_results.append(f"PASS: **Contribution PRs** - {len(data['contribution_prs'])} valid PR links")
+                      else:
+                          validation_results.append("FAIL: **Contribution PRs** - Invalid PR URL format")
+                  else:
+                      validation_results.append("FAIL: **Contribution PRs** - Required for Dev track (must be non-empty list)")
+                      missing_fields.append('contribution_prs')
+              elif 'track' in data and data['track'] == "PlotSense ML":
+                  if 'contribution_prs' in data:
+                      validation_results.append("INFO: **Contribution PRs** - Not required for ML track but included")
+                  else:
+                      validation_results.append("INFO: **Contribution PRs** - Not required for ML track")
+
+              # Build detailed report
+              report = "## Submission Validation Results\n\n"
+              report += f"**Submission File:** `{json_file.name}`\n\n"
+
+              # Determine overall status
+              failed_checks = [r for r in results + validation_results if "FAIL" in r]
+              passed_checks = [r for r in results + validation_results if "PASS" in r]
+              info_checks = [r for r in results + validation_results if "INFO" in r]
+
+              if missing_fields or any("FAIL" in r for r in validation_results):
+                  report += "### VALIDATION FAILED\n\n"
+                  report += f"**Status:** {len(failed_checks)} check(s) failed, {len(passed_checks)} check(s) passed\n\n"
+                  report += "---\n\n"
+              else:
+                  report += "### VALIDATION PASSED\n\n"
+                  report += f"**Status:** All {len(passed_checks)} checks passed successfully!\n\n"
+                  report += "---\n\n"
+
+              # Show failed checks first if any
+              if failed_checks:
+                  report += "### Failed Checks (Action Required)\n\n"
+                  report += "**Please fix the following issues:**\n\n"
+                  for i, check in enumerate(failed_checks, 1):
+                      clean_check = check.replace("FAIL: ", "")
+                      report += f"{i}. {clean_check}\n"
+                  report += "\n---\n\n"
+
+              # Show all required fields check
+              report += "### Required Fields\n\n"
+              for result in results:
+                  if "PASS" in result:
+                      clean_result = result.replace("PASS: ", "")
+                      report += f"- [PASS] {clean_result}\n"
+                  elif "FAIL" in result:
+                      clean_result = result.replace("FAIL: ", "")
+                      report += f"- [FAIL] {clean_result}\n"
+              report += "\n"
+
+              # Show additional validations
+              report += "### Additional Validations\n\n"
+              for result in validation_results:
+                  if "PASS" in result:
+                      clean_result = result.replace("PASS: ", "")
+                      report += f"- [PASS] {clean_result}\n"
+                  elif "FAIL" in result:
+                      clean_result = result.replace("FAIL: ", "")
+                      report += f"- [FAIL] {clean_result}\n"
+                  elif "INFO" in result:
+                      clean_result = result.replace("INFO: ", "")
+                      report += f"- [INFO] {clean_result}\n"
+              report += "\n"
+
+              # Add helpful instructions if there are failures
+              if failed_checks:
+                  report += "---\n\n"
+                  report += "### How to Fix\n\n"
+                  report += "1. Review the **Failed Checks** section above\n"
+                  report += "2. Update your submission JSON file with the required information\n"
+                  report += "3. Commit and push your changes to re-trigger validation\n"
+                  report += "4. Ensure your repository URL follows the format: `plotsenseai-hackathon-PSH2025-XXX`\n"
+                  report += "5. For Dev track submissions, include valid PR links to the PlotSense repository\n\n"
+
+              # Summary
+              report += "---\n\n"
+              report += "### Validation Summary\n\n"
+              report += f"- **Total Checks:** {len(results) + len(validation_results)}\n"
+              report += f"- **Passed:** {len(passed_checks)}\n"
+              report += f"- **Failed:** {len(failed_checks)}\n"
+              if info_checks:
+                  report += f"- **Info:** {len(info_checks)}\n"
+
+              return report
+
+          validation_report = validate_submission()
+
+          with open('validation_results.txt', 'w') as f:
+              f.write(validation_report)
+
+          # Write to GitHub Actions summary
+          with open(os.environ.get('GITHUB_STEP_SUMMARY', 'summary.md'), 'w') as f:
+              f.write(validation_report)
+
+          if "VALIDATION FAILED" in validation_report or "PARTIAL VALIDATION" in validation_report:
+              print("::error::Validation failed - check results for details")
+              sys.exit(1)
+          else:
+              print("::notice::Validation passed successfully!")
+          EOF
+
+      - name: Comment on PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            let comment = '';
+            try {
+              const results = fs.readFileSync('validation_results.txt', 'utf8');
+              comment = results;
+            } catch (error) {
+              comment = '## Submission Validation Results\n\nERROR: **Validation failed to run properly. Please check the workflow logs.**\n\n';
+            }
+
+            comment += '\n---\n*This is an automated check. Please ensure all requirements are met before requesting review.*';
+
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+
+            const botComment = comments.data.find(comment =>
+              comment.user.login === 'github-actions[bot]' &&
+              comment.body.includes('Submission Validation Results')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: comment
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment
+              });
+            }
