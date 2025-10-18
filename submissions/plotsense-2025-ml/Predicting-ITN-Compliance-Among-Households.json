@@ -1,0 +1,17 @@
+{
+  "id": "PSH2025-183",
+  "track": "PlotSense ML",
+  "project_name": "Predicting ITN Compliance Among Households",
+  "team_name": "EarlyBloomer",
+  "repo_url": "https://github.com/EarlyBloomer-byte/plotsenseai-hackathon-PSH-2025-183",
+  "video_url": "https://youtu.be/Sw4-Hz9MhLc",
+  "social_links": [
+    "https://x.com/OsheaOluwasegun/status/1979532058016829780?t=8ovZeYDM6g2jTTpeLBelWg&s=19",
+    "https://www.linkedin.com/posts/joshua-adebayo-a8947b281_plotsenseai-plotsenseaihackathon2025-havilahacademy-activity-7385285035756650496-Xki8"
+  ],
+  "discord_handle": "@joshuasegun",
+  "contact_email": "joshuaadebayo287@gmail.com",
+  "team_members": [
+    { "name": "Joshua Adebayo", "role": "Data Scientist, ML Engineer" },
+  ]
+}
