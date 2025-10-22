@@ -36,15 +36,63 @@ jobs:
         pip install requests python-dateutil
 
     - name: Generate submission data
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         python << 'EOF'
         import json
         import os
         import glob
+        import requests
         from pathlib import Path
         from datetime import datetime, timezone
 
-        def collect_submissions():
+        def fetch_prs_for_submissions():
+            """Fetch all PRs targeting review branch and map them to submission files"""
+            token = os.environ.get('GITHUB_TOKEN')
+            repo = os.environ.get('GITHUB_REPOSITORY', 'PlotSenseAI/PlotSenseAI-Hackathon-Submissions')
+
+            headers = {'Authorization': f'token {token}'} if token else {}
+
+            pr_map = {}
+            try:
+                # Fetch all PRs (open and closed)
+                for state in ['open', 'closed']:
+                    url = f'https://api.github.com/repos/{repo}/pulls?state={state}&base=review&per_page=100'
+                    response = requests.get(url, headers=headers)
+
+                    if response.status_code == 200:
+                        prs = response.json()
+
+                        for pr in prs:
+                            # Fetch PR files to find which submission it modifies
+                            files_url = pr['url'] + '/files'
+                            files_response = requests.get(files_url, headers=headers)
+
+                            if files_response.status_code == 200:
+                                files = files_response.json()
+
+                                for file in files:
+                                    if file['filename'].startswith('submissions/') and file['filename'].endswith('.json'):
+                                        if file['filename'] not in pr_map:
+                                            pr_map[file['filename']] = []
+
+                                        pr_status = 'merged' if pr['merged_at'] else ('open' if pr['state'] == 'open' else 'closed')
+
+                                        pr_map[file['filename']].append({
+                                            'number': pr['number'],
+                                            'url': pr['html_url'],
+                                            'status': pr_status,
+                                            'title': pr['title'],
+                                            'created_at': pr['created_at'],
+                                            'merged_at': pr.get('merged_at')
+                                        })
+            except Exception as e:
+                print(f"Error fetching PRs: {e}")
+
+            return pr_map
+
+        def collect_submissions(pr_map):
             submissions = []
             submission_files = []
             for track_dir in ['submissions/plotsense-2025-ml', 'submissions/plotsense-2025-dev']:
@@ -70,10 +118,16 @@ jobs:
                         else:
                             submission['tech_stack'] = ['JavaScript', 'PlotSenseAI', 'React', 'Node.js']
 
-                    submission['status'] = 'pending'
-                    required_fields = ['id', 'track', 'project_name', 'team_name', 'repo_url']
-                    if all(field in submission and submission[field] for field in required_fields):
-                        submission['status'] = 'validated'
+                    # Get PR information for this submission
+                    prs = pr_map.get(file_path, [])
+                    if prs:
+                        # Get the most recent PR
+                        latest_pr = max(prs, key=lambda x: x['created_at'])
+                        submission['status'] = latest_pr['status']
+                        submission['pr_url'] = latest_pr['url']
+                        submission['pr_number'] = latest_pr['number']
+                    else:
+                        submission['status'] = 'pending'
 
                     submissions.append(submission)
 
@@ -131,8 +185,13 @@ jobs:
 
             return metrics
 
+        # Fetch PR data from GitHub API
+        print("Fetching PR data from GitHub...")
+        pr_map = fetch_prs_for_submissions()
+        print(f"Found PRs for {len(pr_map)} submission files")
+
         # Collect September 2025 submissions
-        submissions = collect_submissions()
+        submissions = collect_submissions(pr_map)
         metrics = generate_metrics(submissions)
 
         # Create directory structure for September 2025 hackathon
