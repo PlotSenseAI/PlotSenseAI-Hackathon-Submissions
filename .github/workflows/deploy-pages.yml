@@ -70,14 +70,40 @@ jobs:
                 'dev_track': {'open': 0, 'merged': 0}
             }
 
-            def extract_track_from_pr(pr_title):
-                """Extract track from PR title by matching submission ID"""
+            def extract_track_from_pr(pr_title, pr_number):
+                """Extract track from PR title by matching submission ID or inferring from title"""
                 import re
-                # Try to find submission ID in format PSH2025-XXX
+
+                # Method 1: Try to find submission ID in format PSH2025-XXX
                 match = re.search(r'PSH2025-\d{3}', pr_title)
                 if match:
                     submission_id = match.group(0)
-                    return submission_map.get(submission_id, 'Unknown')
+                    track = submission_map.get(submission_id)
+                    if track and track != 'Unknown':
+                        return track
+
+                # Method 2: Try to fetch PR files to check which folder they're in
+                try:
+                    files_url = f'https://api.github.com/repos/{repo}/pulls/{pr_number}/files'
+                    files_response = requests.get(files_url, headers=headers, timeout=10)
+                    if files_response.status_code == 200:
+                        files = files_response.json()
+                        for file in files:
+                            filename = file.get('filename', '')
+                            if 'plotsense-2025-ml' in filename:
+                                return 'PlotSense ML'
+                            elif 'plotsense-2025-dev' in filename:
+                                return 'PlotSense Dev'
+                except Exception as e:
+                    print(f"Could not fetch files for PR #{pr_number}: {e}")
+
+                # Method 3: Infer from PR title keywords
+                title_lower = pr_title.lower()
+                if 'ml track' in title_lower or 'machine learning' in title_lower or 'plotsense ml' in title_lower:
+                    return 'PlotSense ML'
+                elif 'dev track' in title_lower or 'development' in title_lower or 'plotsense dev' in title_lower:
+                    return 'PlotSense Dev'
+
                 return 'Unknown'
 
             try:
@@ -86,7 +112,7 @@ jobs:
                 if response.status_code == 200:
                     open_prs = response.json()
                     for pr in open_prs:
-                        track = extract_track_from_pr(pr['title'])
+                        track = extract_track_from_pr(pr['title'], pr['number'])
                         pr_data['open_prs'].append({
                             'number': pr['number'],
                             'title': pr['title'],
@@ -110,7 +136,7 @@ jobs:
                     closed_prs = response.json()
                     merged_prs = [pr for pr in closed_prs if pr.get('merged_at')]
                     for pr in merged_prs:
-                        track = extract_track_from_pr(pr['title'])
+                        track = extract_track_from_pr(pr['title'], pr['number'])
                         pr_data['merged_prs'].append({
                             'number': pr['number'],
                             'title': pr['title'],
