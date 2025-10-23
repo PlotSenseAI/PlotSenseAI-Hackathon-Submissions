@@ -47,12 +47,15 @@ jobs:
         from pathlib import Path
         from datetime import datetime, timezone
 
-        def fetch_pr_data():
-            """Fetch PR data from GitHub API"""
+        def fetch_pr_data(submissions):
+            """Fetch PR data from GitHub API and match with submissions to detect track"""
             token = os.environ.get('GITHUB_TOKEN')
             repo = os.environ.get('GITHUB_REPOSITORY', 'PlotSenseAI/PlotSenseAI-Hackathon-Submissions')
 
             headers = {'Authorization': f'token {token}'} if token else {}
+
+            # Create submission ID to track mapping
+            submission_map = {sub['id']: sub.get('track', 'Unknown') for sub in submissions}
 
             # Fetch open PRs targeting review branch
             open_prs_url = f'https://api.github.com/repos/{repo}/pulls?state=open&base=review&per_page=100'
@@ -62,22 +65,43 @@ jobs:
                 'open_prs': [],
                 'merged_prs': [],
                 'total_open': 0,
-                'total_merged': 0
+                'total_merged': 0,
+                'ml_track': {'open': 0, 'merged': 0},
+                'dev_track': {'open': 0, 'merged': 0}
             }
+
+            def extract_track_from_pr(pr_title):
+                """Extract track from PR title by matching submission ID"""
+                import re
+                # Try to find submission ID in format PSH2025-XXX
+                match = re.search(r'PSH2025-\d{3}', pr_title)
+                if match:
+                    submission_id = match.group(0)
+                    return submission_map.get(submission_id, 'Unknown')
+                return 'Unknown'
 
             try:
                 # Get open PRs
                 response = requests.get(open_prs_url, headers=headers, timeout=10)
                 if response.status_code == 200:
                     open_prs = response.json()
-                    pr_data['open_prs'] = [{
-                        'number': pr['number'],
-                        'title': pr['title'],
-                        'user': pr['user']['login'],
-                        'created_at': pr['created_at'],
-                        'html_url': pr['html_url'],
-                        'state': 'open'
-                    } for pr in open_prs]
+                    for pr in open_prs:
+                        track = extract_track_from_pr(pr['title'])
+                        pr_data['open_prs'].append({
+                            'number': pr['number'],
+                            'title': pr['title'],
+                            'user': pr['user']['login'],
+                            'created_at': pr['created_at'],
+                            'html_url': pr['html_url'],
+                            'state': 'open',
+                            'track': track
+                        })
+                        # Count by track
+                        if track == 'PlotSense ML':
+                            pr_data['ml_track']['open'] += 1
+                        elif track == 'PlotSense Dev':
+                            pr_data['dev_track']['open'] += 1
+
                     pr_data['total_open'] = len(pr_data['open_prs'])
 
                 # Get merged PRs
@@ -85,18 +109,29 @@ jobs:
                 if response.status_code == 200:
                     closed_prs = response.json()
                     merged_prs = [pr for pr in closed_prs if pr.get('merged_at')]
-                    pr_data['merged_prs'] = [{
-                        'number': pr['number'],
-                        'title': pr['title'],
-                        'user': pr['user']['login'],
-                        'created_at': pr['created_at'],
-                        'merged_at': pr['merged_at'],
-                        'html_url': pr['html_url'],
-                        'state': 'merged'
-                    } for pr in merged_prs]
+                    for pr in merged_prs:
+                        track = extract_track_from_pr(pr['title'])
+                        pr_data['merged_prs'].append({
+                            'number': pr['number'],
+                            'title': pr['title'],
+                            'user': pr['user']['login'],
+                            'created_at': pr['created_at'],
+                            'merged_at': pr['merged_at'],
+                            'html_url': pr['html_url'],
+                            'state': 'merged',
+                            'track': track
+                        })
+                        # Count by track
+                        if track == 'PlotSense ML':
+                            pr_data['ml_track']['merged'] += 1
+                        elif track == 'PlotSense Dev':
+                            pr_data['dev_track']['merged'] += 1
+
                     pr_data['total_merged'] = len(pr_data['merged_prs'])
 
                 print(f"Fetched {pr_data['total_open']} open PRs and {pr_data['total_merged']} merged PRs")
+                print(f"ML Track: {pr_data['ml_track']['open']} open, {pr_data['ml_track']['merged']} merged")
+                print(f"Dev Track: {pr_data['dev_track']['open']} open, {pr_data['dev_track']['merged']} merged")
 
             except Exception as e:
                 print(f"Error fetching PR data: {e}")
@@ -192,11 +227,13 @@ jobs:
 
             return metrics
 
-        # Fetch PR data
-        pr_data = fetch_pr_data()
-
-        # Collect September 2025 submissions
+        # Collect September 2025 submissions first
         submissions = collect_submissions()
+
+        # Fetch PR data with submission context for track detection
+        pr_data = fetch_pr_data(submissions)
+
+        # Generate metrics with PR data
         metrics = generate_metrics(submissions, pr_data)
 
         # Create directory structure for September 2025 hackathon
