@@ -3,6 +3,9 @@ name: Deploy GitHub Pages
 on:
   push:
     branches: [ main, review ]
+  pull_request:
+    branches: [ review ]
+    types: [opened, synchronize, reopened]
   schedule:
     # Update every hour
     - cron: '0 * * * *'
