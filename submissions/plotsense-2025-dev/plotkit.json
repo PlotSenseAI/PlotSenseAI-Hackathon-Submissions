@@ -1,0 +1,21 @@
+{
+  "id": "PSH2025-800",
+  "track": "PlotSense Dev",
+  "project_name": "Your Dev Project Name",
+  "team_name": "DYung26",
+  "repo_url": "https://github.com/DYung26/plotsenseai-hackathon-PSH2025-800",
+  "video_url": "https://youtube.com/your-demo-video",
+  "contribution_prs": [
+    "https://github.com/plotsenseai/plotsenseai/pull/123",
+    "https://github.com/plotsenseai/plotsenseai/pull/124"
+  ],
+  "social_links": [
+    "https://x.com/DYung26/status/1984113782256198115",
+    "https://linkedin.com/posts/yourteam_plotsense-hackathon"
+  ],
+  "discord_handle": "dyung26_37363",
+  "contact_email": "danoyekunle6@gmail.com",
+  "team_members": [
+    { "name": "Daniel Oyekunle", "role": "Fullstack Developer" }
+  ]
+}
