@@ -236,9 +236,16 @@ jobs:
                     }
                 }
 
+            # Calculate total submissions from PRs (open + merged), not JSON files
+            total_pr_count = pr_data.get('total_open', 0) + pr_data.get('total_merged', 0)
+
+            # Count unique teams from PRs
+            all_prs = pr_data.get('open_prs', []) + pr_data.get('merged_prs', [])
+            unique_teams = len(set(pr.get('user', '') for pr in all_prs if pr.get('user')))
+
             metrics = {
-                'total_submissions': len(submissions),
-                'total_teams': len(submissions),
+                'total_submissions': total_pr_count,
+                'total_teams': unique_teams if unique_teams > 0 else len(submissions),
                 'tracks': {},
                 'status_counts': {'validated': 0, 'pending': 0, 'failed': 0},
                 'tech_stack_usage': {},
@@ -247,8 +254,10 @@ jobs:
                 'prs': pr_data
             }
 
+            # Count tracks from PRs
             for track in ['PlotSense ML', 'PlotSense Dev']:
-                metrics['tracks'][track] = len([s for s in submissions if s.get('track') == track])
+                track_count = len([pr for pr in all_prs if pr.get('track') == track])
+                metrics['tracks'][track] = track_count
 
             for status in ['validated', 'pending', 'failed']:
                 metrics['status_counts'][status] = len([s for s in submissions if s.get('status') == status])
