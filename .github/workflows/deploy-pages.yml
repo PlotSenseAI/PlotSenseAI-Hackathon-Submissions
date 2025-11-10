@@ -2,11 +2,19 @@ name: Deploy GitHub Pages
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, review ]
+  pull_request:
+    branches: [ review ]
+    types: [opened, synchronize, reopened]
   schedule:
     # Update every hour
     - cron: '0 * * * *'
   workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+  pages: write
 
 concurrency:
   group: "pages"
@@ -15,11 +23,6 @@ concurrency:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
 
     steps:
     - name: Checkout repository
@@ -47,12 +50,15 @@ jobs:
         from pathlib import Path
         from datetime import datetime, timezone
 
-        def fetch_pr_data():
-            """Fetch PR data from GitHub API"""
+        def fetch_pr_data(submissions):
+            """Fetch PR data from GitHub API and match with submissions to detect track"""
             token = os.environ.get('GITHUB_TOKEN')
             repo = os.environ.get('GITHUB_REPOSITORY', 'PlotSenseAI/PlotSenseAI-Hackathon-Submissions')
 
             headers = {'Authorization': f'token {token}'} if token else {}
+
+            # Create submission ID to track mapping
+            submission_map = {sub['id']: sub.get('track', 'Unknown') for sub in submissions}
 
             # Fetch open PRs targeting review branch
             open_prs_url = f'https://api.github.com/repos/{repo}/pulls?state=open&base=review&per_page=100'
@@ -62,22 +68,69 @@ jobs:
                 'open_prs': [],
                 'merged_prs': [],
                 'total_open': 0,
-                'total_merged': 0
+                'total_merged': 0,
+                'ml_track': {'open': 0, 'merged': 0},
+                'dev_track': {'open': 0, 'merged': 0}
             }
+
+            def extract_track_from_pr(pr_title, pr_number):
+                """Extract track from PR title by matching submission ID or inferring from title"""
+                import re
+
+                # Method 1: Try to find submission ID in format PSH2025-XXX
+                match = re.search(r'PSH2025-\d{3}', pr_title)
+                if match:
+                    submission_id = match.group(0)
+                    track = submission_map.get(submission_id)
+                    if track and track != 'Unknown':
+                        return track
+
+                # Method 2: Try to fetch PR files to check which folder they're in
+                try:
+                    files_url = f'https://api.github.com/repos/{repo}/pulls/{pr_number}/files'
+                    files_response = requests.get(files_url, headers=headers, timeout=10)
+                    if files_response.status_code == 200:
+                        files = files_response.json()
+                        for file in files:
+                            filename = file.get('filename', '')
+                            if 'plotsense-2025-ml' in filename:
+                                return 'PlotSense ML'
+                            elif 'plotsense-2025-dev' in filename:
+                                return 'PlotSense Dev'
+                except Exception as e:
+                    print(f"Could not fetch files for PR #{pr_number}: {e}")
+
+                # Method 3: Infer from PR title keywords
+                title_lower = pr_title.lower()
+                if 'ml track' in title_lower or 'machine learning' in title_lower or 'plotsense ml' in title_lower:
+                    return 'PlotSense ML'
+                elif 'dev track' in title_lower or 'development' in title_lower or 'plotsense dev' in title_lower:
+                    return 'PlotSense Dev'
+
+                return 'Unknown'
 
             try:
                 # Get open PRs
                 response = requests.get(open_prs_url, headers=headers, timeout=10)
                 if response.status_code == 200:
                     open_prs = response.json()
-                    pr_data['open_prs'] = [{
-                        'number': pr['number'],
-                        'title': pr['title'],
-                        'user': pr['user']['login'],
-                        'created_at': pr['created_at'],
-                        'html_url': pr['html_url'],
-                        'state': 'open'
-                    } for pr in open_prs]
+                    for pr in open_prs:
+                        track = extract_track_from_pr(pr['title'], pr['number'])
+                        pr_data['open_prs'].append({
+                            'number': pr['number'],
+                            'title': pr['title'],
+                            'user': pr['user']['login'],
+                            'created_at': pr['created_at'],
+                            'html_url': pr['html_url'],
+                            'state': 'open',
+                            'track': track
+                        })
+                        # Count by track
+                        if track == 'PlotSense ML':
+                            pr_data['ml_track']['open'] += 1
+                        elif track == 'PlotSense Dev':
+                            pr_data['dev_track']['open'] += 1
+
                     pr_data['total_open'] = len(pr_data['open_prs'])
 
                 # Get merged PRs
@@ -85,18 +138,29 @@ jobs:
                 if response.status_code == 200:
                     closed_prs = response.json()
                     merged_prs = [pr for pr in closed_prs if pr.get('merged_at')]
-                    pr_data['merged_prs'] = [{
-                        'number': pr['number'],
-                        'title': pr['title'],
-                        'user': pr['user']['login'],
-                        'created_at': pr['created_at'],
-                        'merged_at': pr['merged_at'],
-                        'html_url': pr['html_url'],
-                        'state': 'merged'
-                    } for pr in merged_prs]
+                    for pr in merged_prs:
+                        track = extract_track_from_pr(pr['title'], pr['number'])
+                        pr_data['merged_prs'].append({
+                            'number': pr['number'],
+                            'title': pr['title'],
+                            'user': pr['user']['login'],
+                            'created_at': pr['created_at'],
+                            'merged_at': pr['merged_at'],
+                            'html_url': pr['html_url'],
+                            'state': 'merged',
+                            'track': track
+                        })
+                        # Count by track
+                        if track == 'PlotSense ML':
+                            pr_data['ml_track']['merged'] += 1
+                        elif track == 'PlotSense Dev':
+                            pr_data['dev_track']['merged'] += 1
+
                     pr_data['total_merged'] = len(pr_data['merged_prs'])
 
                 print(f"Fetched {pr_data['total_open']} open PRs and {pr_data['total_merged']} merged PRs")
+                print(f"ML Track: {pr_data['ml_track']['open']} open, {pr_data['ml_track']['merged']} merged")
+                print(f"Dev Track: {pr_data['dev_track']['open']} open, {pr_data['dev_track']['merged']} merged")
 
             except Exception as e:
                 print(f"Error fetching PR data: {e}")
@@ -143,7 +207,17 @@ jobs:
             return submissions
 
         def generate_metrics(submissions, pr_data):
-            if not submissions:
+            # Filter out submissions with Unknown track (used for testing)
+            submissions = [s for s in submissions if s.get('track') != 'Unknown']
+
+            # Filter out PRs with Unknown track from PR data
+            if pr_data:
+                pr_data['open_prs'] = [pr for pr in pr_data.get('open_prs', []) if pr.get('track') != 'Unknown']
+                pr_data['merged_prs'] = [pr for pr in pr_data.get('merged_prs', []) if pr.get('track') != 'Unknown']
+                pr_data['total_open'] = len(pr_data['open_prs'])
+                pr_data['total_merged'] = len(pr_data['merged_prs'])
+
+            if not submissions and pr_data.get('total_open', 0) == 0 and pr_data.get('total_merged', 0) == 0:
                 return {
                     'total_submissions': 0,
                     'total_teams': 0,
@@ -152,12 +226,26 @@ jobs:
                     'tech_stack_usage': {},
                     'team_sizes': {},
                     'submission_timeline': [],
-                    'prs': pr_data
+                    'prs': pr_data or {
+                        'open_prs': [],
+                        'merged_prs': [],
+                        'total_open': 0,
+                        'total_merged': 0,
+                        'ml_track': {'open': 0, 'merged': 0},
+                        'dev_track': {'open': 0, 'merged': 0}
+                    }
                 }
 
+            # Calculate total submissions from PRs (open + merged), not JSON files
+            total_pr_count = pr_data.get('total_open', 0) + pr_data.get('total_merged', 0)
+
+            # Count unique teams from PRs
+            all_prs = pr_data.get('open_prs', []) + pr_data.get('merged_prs', [])
+            unique_teams = len(set(pr.get('user', '') for pr in all_prs if pr.get('user')))
+
             metrics = {
-                'total_submissions': len(submissions),
-                'total_teams': len(submissions),
+                'total_submissions': total_pr_count,
+                'total_teams': unique_teams if unique_teams > 0 else len(submissions),
                 'tracks': {},
                 'status_counts': {'validated': 0, 'pending': 0, 'failed': 0},
                 'tech_stack_usage': {},
@@ -166,8 +254,10 @@ jobs:
                 'prs': pr_data
             }
 
+            # Count tracks from PRs
             for track in ['PlotSense ML', 'PlotSense Dev']:
-                metrics['tracks'][track] = len([s for s in submissions if s.get('track') == track])
+                track_count = len([pr for pr in all_prs if pr.get('track') == track])
+                metrics['tracks'][track] = track_count
 
             for status in ['validated', 'pending', 'failed']:
                 metrics['status_counts'][status] = len([s for s in submissions if s.get('status') == status])
@@ -192,11 +282,13 @@ jobs:
 
             return metrics
 
-        # Fetch PR data
-        pr_data = fetch_pr_data()
-
-        # Collect September 2025 submissions
+        # Collect September 2025 submissions first
         submissions = collect_submissions()
+
+        # Fetch PR data with submission context for track detection
+        pr_data = fetch_pr_data(submissions)
+
+        # Generate metrics with PR data
         metrics = generate_metrics(submissions, pr_data)
 
         # Create directory structure for September 2025 hackathon
@@ -229,13 +321,16 @@ jobs:
         EOF
 
     - name: Setup GitHub Pages
+      if: github.event_name != 'pull_request'
       uses: actions/configure-pages@v4
 
     - name: Upload artifacts
+      if: github.event_name != 'pull_request'
       uses: actions/upload-pages-artifact@v3
       with:
         path: 'docs'
 
     - name: Deploy to GitHub Pages
+      if: github.event_name != 'pull_request'
       id: deployment
       uses: actions/deploy-pages@v4

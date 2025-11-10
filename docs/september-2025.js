@@ -29,22 +29,29 @@ async function loadSubmissions() {
 }
 
 function updateDashboard() {
+  // Filter out submissions with Unknown track (used for testing)
+  const validSubmissions = allSubmissions.filter(sub => sub.track !== 'Unknown');
+
   // Filter submissions if team search is active
   const displaySubmissions = filteredTeam
-    ? allSubmissions.filter(sub =>
+    ? validSubmissions.filter(sub =>
         sub.team_name?.toLowerCase().includes(filteredTeam.toLowerCase()) ||
         sub.project_name?.toLowerCase().includes(filteredTeam.toLowerCase())
       )
-    : allSubmissions;
+    : validSubmissions;
 
-  // Get PR data from metrics
+  // Get PR data from metrics and filter out Unknown track
   const prData = metricsData?.prs || { total_open: 0, total_merged: 0, open_prs: [], merged_prs: [] };
 
-  // Calculate metrics
-  const totalSubmissions = displaySubmissions.length;
+  // Calculate metrics from PR data (submissions are represented by PRs)
   const openPRs = prData.total_open;
   const mergedPRs = prData.total_merged;
-  const totalTeams = displaySubmissions.length;
+  const totalSubmissions = openPRs + mergedPRs;
+
+  // Count unique teams from PRs
+  const allPRs = [...(prData.open_prs || []), ...(prData.merged_prs || [])];
+  const uniqueTeams = new Set(allPRs.map(pr => pr.user).filter(Boolean));
+  const totalTeams = uniqueTeams.size || displaySubmissions.length;
 
   // ML Track
   const mlSubmissions = displaySubmissions.filter(s => s.track === 'PlotSense ML');
@@ -58,14 +65,17 @@ function updateDashboard() {
   document.getElementById('merged-prs').textContent = mergedPRs;
   document.getElementById('total-teams').textContent = totalTeams;
 
-  // Update track summary (show breakdown of PRs by track if available)
-  document.getElementById('ml-open').textContent = '-';
-  document.getElementById('ml-merged').textContent = '-';
-  document.getElementById('ml-total').textContent = mlSubmissions.length;
+  // Update track summary with PR breakdown by track
+  const mlTrack = prData.ml_track || { open: 0, merged: 0 };
+  const devTrack = prData.dev_track || { open: 0, merged: 0 };
 
-  document.getElementById('dev-open').textContent = '-';
-  document.getElementById('dev-merged').textContent = '-';
-  document.getElementById('dev-total').textContent = devSubmissions.length;
+  document.getElementById('ml-open').textContent = mlTrack.open;
+  document.getElementById('ml-merged').textContent = mlTrack.merged;
+  document.getElementById('ml-total').textContent = mlTrack.open + mlTrack.merged;
+
+  document.getElementById('dev-open').textContent = devTrack.open;
+  document.getElementById('dev-merged').textContent = devTrack.merged;
+  document.getElementById('dev-total').textContent = devTrack.open + devTrack.merged;
 
   document.getElementById('all-open').textContent = openPRs;
   document.getElementById('all-merged').textContent = mergedPRs;
@@ -78,8 +88,9 @@ function updateDashboard() {
 function renderSubmissionsTable(submissions, prData) {
   const tbody = document.getElementById('submissions-list');
 
-  // Combine submissions with PR data
-  const allPRs = [...(prData.open_prs || []), ...(prData.merged_prs || [])];
+  // Combine submissions with PR data and filter out Unknown track
+  const allPRs = [...(prData.open_prs || []), ...(prData.merged_prs || [])]
+    .filter(pr => pr.track !== 'Unknown');
 
   if (submissions.length === 0 && allPRs.length === 0) {
     tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 2rem; color: #6b7280;">No submissions found.</td></tr>';
@@ -110,11 +121,22 @@ function renderSubmissionsTable(submissions, prData) {
 
     const teamName = submission?.team_name || pr.user || 'Unknown Team';
     const projectName = submission?.project_name || prTitle.split(' - ')[1] || '';
-    const track = submission?.track || 'Unknown';
+
+    // Use track from PR data (which was detected from submission), fallback to submission track
+    const track = pr.track || submission?.track || 'Unknown';
 
     const prLink = prUrl
       ? `<a href="${prUrl}" class="pr-link" target="_blank" rel="noopener noreferrer">PR #${prNumber}</a>`
       : '<span style="color: #9ca3af;">No PR</span>';
+
+    // Determine track badge class
+    const trackClass = track === 'PlotSense ML' ? 'track-ml' :
+                       track === 'PlotSense Dev' ? 'track-dev' :
+                       'track-unknown';
+
+    const trackDisplay = track === 'PlotSense ML' ? 'ML Track' :
+                         track === 'PlotSense Dev' ? 'Dev Track' :
+                         track;
 
     const rowId = `pr-${index}`;
     const highlightClass = filteredTeam &&
@@ -127,7 +149,7 @@ function renderSubmissionsTable(submissions, prData) {
         <td><strong>${teamName}</strong><br>
             <small style="color: #6b7280;">${projectName}</small>
         </td>
-        <td>${track}</td>
+        <td><span class="track-badge ${trackClass}">${trackDisplay}</span></td>
         <td><span class="status-badge ${statusClass}">${prState}</span></td>
         <td>${prLink}</td>
       </tr>

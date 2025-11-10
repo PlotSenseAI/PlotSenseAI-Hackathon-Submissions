@@ -1,0 +1,20 @@
+{
+  "id": "PSH2025-774",
+  "track": "PlotSense ML",
+  "project_name": "Graphycs Ai",
+  "team_name": "Hello Physics",
+  "repo_url": "https://github.com/helloPhysics/plotsenseai-hackathon-PSH2025-774.git",
+  "video_url": "https://www.youtube.com/watch?v=OkMDLTGN9EA&t=1s",
+  "social_links": [
+    "https://x.com/HelloPhysics_/status/1980038363198435838",
+    "https://www.linkedin.com/posts/activity-7385813834504007680--l9v?utm_source=share&utm_medium=member_desktop&rcm=ACoAADdELR8Bl4cOV_AJw5E_JuuDm5Wh8OvvzU0"
+  ],
+  "discord_handle": "dramatica8900",
+  "contact_email": "alifojohnson23@gmail.com",
+  "team_members": [
+    { "name": "Johnson Emeka", "role": "Dev & Team Lead" },
+    { "name": "Marvin Adunku", "role": "ML Logic & Testing" },
+    { "name": "Ozioma Osuagwu", "role": "Frontend & Design" },
+    { "name": "Sam Nnamdi Eke", "role": "Data Scientist" }
+  ]
+}

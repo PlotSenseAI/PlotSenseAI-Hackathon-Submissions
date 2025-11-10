@@ -1,0 +1,17 @@
+{
+  "id": "PSH2025-696",
+  "track": "PlotSense ML",
+  "project_name": "Credit Card Transaction Anomaly Detection",
+  "team_name": "Sammy Reels Tech",
+  "repo_url": "https://github.com/Sammydcode/plotsenseai-hackathon-PSH2025-696",
+  "video_url": "https://youtu.be/RMOajjFoLQE", 
+  "social_links": [
+    "https://x.com/AmadasunSamuel/",
+    "https://www.linkedin.com/in/samuel-amadasun-273109374/"
+  ],
+  "discord_handle": "sammyonamen",
+  "contact_email": "sammyonamen@gmail.com",
+  "team_members": [
+    { "name": "Samuel Amadasun", "role": "Data Scientist / ML Engineer" }
+  ]
+}
