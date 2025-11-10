@@ -43,11 +43,15 @@ function updateDashboard() {
   // Get PR data from metrics and filter out Unknown track
   const prData = metricsData?.prs || { total_open: 0, total_merged: 0, open_prs: [], merged_prs: [] };
 
-  // Calculate metrics
-  const totalSubmissions = displaySubmissions.length;
+  // Calculate metrics from PR data (submissions are represented by PRs)
   const openPRs = prData.total_open;
   const mergedPRs = prData.total_merged;
-  const totalTeams = displaySubmissions.length;
+  const totalSubmissions = openPRs + mergedPRs;
+
+  // Count unique teams from PRs
+  const allPRs = [...(prData.open_prs || []), ...(prData.merged_prs || [])];
+  const uniqueTeams = new Set(allPRs.map(pr => pr.user).filter(Boolean));
+  const totalTeams = uniqueTeams.size || displaySubmissions.length;
 
   // ML Track
   const mlSubmissions = displaySubmissions.filter(s => s.track === 'PlotSense ML');
