@@ -1,35 +1,35 @@
 # PlotSenseAI Hackathon 2025 - Dashboard Documentation
 
-## 🎯 Overview
+## Overview
 
 This GitHub Pages site serves as the official dashboard for the PlotSenseAI Hackathon 2025, providing real-time metrics, submission showcases, and comprehensive analytics for the hackathon.
 
-## 🚀 Features
+## Features
 
-### 📊 Real-time Metrics Dashboard
+### Real-time Metrics Dashboard
 - **Submission Statistics**: Live count of total submissions, teams, and validation status
 - **Track Distribution**: Visual breakdown of ML vs Dev track participation
 - **Technology Analytics**: Most popular tech stacks and frameworks used
 - **Timeline Tracking**: Submission trends and daily activity
 
-### 🏆 Project Showcase
+### Project Showcase
 - **Interactive Gallery**: Browse all submitted projects with filtering by track
 - **Rich Project Cards**: Display team info, tech stack, demo videos, and social links
 - **Validation Status**: Real-time indication of submission validation status
 - **Direct Links**: Quick access to GitHub repos and demo videos
 
-### 📈 Analytics & Leaderboards
+### Analytics & Leaderboards
 - **Social Engagement**: Track social media activity and community participation
 - **Innovation Metrics**: Technology diversity and creative stack usage
 - **Completion Rates**: Validation success and submission quality metrics
 
-### 🔄 Automated Updates
+### Automated Updates
 - **5-minute refresh cycle** for real-time data
 - **GitHub Actions integration** for automatic deployment
 - **Data aggregation** from submission JSON files
 - **README statistics** auto-update with submission counts
 
-## 🛠 Technical Architecture
+## Technical Architecture
 
 ### Frontend Stack
 - **HTML5** with semantic markup and accessibility features
@@ -56,7 +56,7 @@ Process: Data aggregation → Build → Deploy to GitHub Pages
 Result: Live dashboard with latest submission data
 ```
 
-## 📁 File Structure
+## File Structure
 
 ```
 docs/
@@ -70,7 +70,7 @@ docs/
     └── metrics.json        # Computed metrics and statistics
 ```
 
-## 🎨 Design System
+## Design System
 
 ### Color Palette
 - **Primary**: #6366f1 (Indigo) - Main brand color
@@ -90,7 +90,7 @@ docs/
 - **Buttons**: Gradient backgrounds with hover states
 - **Status Indicators**: Color-coded with clear labels
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Local Development
 ```bash
@@ -152,7 +152,7 @@ npx http-server .
 }
 ```
 
-## 🔧 Configuration
+## Configuration
 
 ### Environment Variables
 No environment variables required - the dashboard runs entirely client-side with data from JSON files.
@@ -180,14 +180,14 @@ const chartOptions = {
 }
 ```
 
-## 📱 Responsive Design
+## Responsive Design
 
 The dashboard is fully responsive with breakpoints:
 - **Desktop**: 1200px+ (Full layout with sidebar charts)
 - **Tablet**: 768px-1199px (Stacked layout, larger touch targets)
 - **Mobile**: <768px (Single column, optimized navigation)
 
-## ♿ Accessibility
+## Accessibility
 
 - **Semantic HTML** with proper heading hierarchy
 - **ARIA labels** for interactive elements
@@ -195,14 +195,14 @@ The dashboard is fully responsive with breakpoints:
 - **High contrast** color ratios (WCAG AA compliant)
 - **Screen reader** compatibility
 
-## 🔍 SEO Optimization
+## SEO Optimization
 
 - **Meta tags** for social media sharing
 - **Structured data** for search engines
 - **Performance optimization** with lazy loading
 - **Progressive enhancement** for all users
 
-## 📊 Analytics Integration
+## Analytics Integration
 
 Ready for integration with analytics platforms:
 ```javascript
@@ -213,14 +213,14 @@ gtag('event', 'view_submission', {
 });
 ```
 
-## 🛡 Security
+## Security
 
 - **No server-side code** reduces attack surface
 - **Static hosting** on GitHub Pages
 - **Input sanitization** for any dynamic content
 - **CSP headers** recommended for production
 
-## 🚀 Performance
+## Performance
 
 ### Optimization Features
 - **Lazy loading** for non-critical resources
@@ -233,7 +233,7 @@ gtag('event', 'view_submission', {
 - **Largest Contentful Paint**: <2.5s
 - **Cumulative Layout Shift**: <0.1
 
-## 🤝 Contributing
+## Contributing
 
 ### Adding New Features
 1. **Fork** the repository
@@ -250,7 +250,7 @@ Use GitHub Issues with:
 - **Expected vs actual** behavior
 - **Screenshots** if applicable
 
-## 📅 Maintenance
+## Maintenance
 
 ### Regular Tasks
 - **Monitor** dashboard performance
@@ -266,7 +266,7 @@ Use GitHub Issues with:
 - [ ] Check load times
 - [ ] Review analytics data
 
-## 📞 Support
+## Support
 
 For technical issues or questions:
 - **GitHub Issues**: [Repository Issues](https://github.com/PlotSenseAI/PlotSenseAI-Hackathon-Submissions/issues)
@@ -277,4 +277,4 @@ For technical issues or questions:
 
 Developed by PlotSenseAI and the Havilah Academy team.
 
-**Happy hacking!** 🚀
+**Happy hacking!**

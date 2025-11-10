@@ -11,6 +11,11 @@ on:
     - cron: '0 * * * *'
   workflow_dispatch:
 
+permissions:
+  id-token: write
+  contents: read
+  pages: write
+
 concurrency:
   group: "pages"
   cancel-in-progress: false
@@ -18,11 +23,6 @@ concurrency:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
 
     steps:
     - name: Checkout repository
@@ -207,7 +207,17 @@ jobs:
             return submissions
 
         def generate_metrics(submissions, pr_data):
-            if not submissions:
+            # Filter out submissions with Unknown track (used for testing)
+            submissions = [s for s in submissions if s.get('track') != 'Unknown']
+
+            # Filter out PRs with Unknown track from PR data
+            if pr_data:
+                pr_data['open_prs'] = [pr for pr in pr_data.get('open_prs', []) if pr.get('track') != 'Unknown']
+                pr_data['merged_prs'] = [pr for pr in pr_data.get('merged_prs', []) if pr.get('track') != 'Unknown']
+                pr_data['total_open'] = len(pr_data['open_prs'])
+                pr_data['total_merged'] = len(pr_data['merged_prs'])
+
+            if not submissions and pr_data.get('total_open', 0) == 0 and pr_data.get('total_merged', 0) == 0:
                 return {
                     'total_submissions': 0,
                     'total_teams': 0,
@@ -216,12 +226,26 @@ jobs:
                     'tech_stack_usage': {},
                     'team_sizes': {},
                     'submission_timeline': [],
-                    'prs': pr_data
+                    'prs': pr_data or {
+                        'open_prs': [],
+                        'merged_prs': [],
+                        'total_open': 0,
+                        'total_merged': 0,
+                        'ml_track': {'open': 0, 'merged': 0},
+                        'dev_track': {'open': 0, 'merged': 0}
+                    }
                 }
 
+            # Calculate total submissions from PRs (open + merged), not JSON files
+            total_pr_count = pr_data.get('total_open', 0) + pr_data.get('total_merged', 0)
+
+            # Count unique teams from PRs
+            all_prs = pr_data.get('open_prs', []) + pr_data.get('merged_prs', [])
+            unique_teams = len(set(pr.get('user', '') for pr in all_prs if pr.get('user')))
+
             metrics = {
-                'total_submissions': len(submissions),
-                'total_teams': len(submissions),
+                'total_submissions': total_pr_count,
+                'total_teams': unique_teams if unique_teams > 0 else len(submissions),
                 'tracks': {},
                 'status_counts': {'validated': 0, 'pending': 0, 'failed': 0},
                 'tech_stack_usage': {},
@@ -230,8 +254,10 @@ jobs:
                 'prs': pr_data
             }
 
+            # Count tracks from PRs
             for track in ['PlotSense ML', 'PlotSense Dev']:
-                metrics['tracks'][track] = len([s for s in submissions if s.get('track') == track])
+                track_count = len([pr for pr in all_prs if pr.get('track') == track])
+                metrics['tracks'][track] = track_count
 
             for status in ['validated', 'pending', 'failed']:
                 metrics['status_counts'][status] = len([s for s in submissions if s.get('status') == status])
@@ -295,13 +321,16 @@ jobs:
         EOF
 
     - name: Setup GitHub Pages
+      if: github.event_name != 'pull_request'
       uses: actions/configure-pages@v4
 
     - name: Upload artifacts
+      if: github.event_name != 'pull_request'
       uses: actions/upload-pages-artifact@v3
       with:
         path: 'docs'
 
     - name: Deploy to GitHub Pages
+      if: github.event_name != 'pull_request'
       id: deployment
       uses: actions/deploy-pages@v4

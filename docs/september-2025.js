@@ -29,22 +29,29 @@ async function loadSubmissions() {
 }
 
 function updateDashboard() {
+  // Filter out submissions with Unknown track (used for testing)
+  const validSubmissions = allSubmissions.filter(sub => sub.track !== 'Unknown');
+
   // Filter submissions if team search is active
   const displaySubmissions = filteredTeam
-    ? allSubmissions.filter(sub =>
+    ? validSubmissions.filter(sub =>
         sub.team_name?.toLowerCase().includes(filteredTeam.toLowerCase()) ||
         sub.project_name?.toLowerCase().includes(filteredTeam.toLowerCase())
       )
-    : allSubmissions;
+    : validSubmissions;
 
-  // Get PR data from metrics
+  // Get PR data from metrics and filter out Unknown track
   const prData = metricsData?.prs || { total_open: 0, total_merged: 0, open_prs: [], merged_prs: [] };
 
-  // Calculate metrics
-  const totalSubmissions = displaySubmissions.length;
+  // Calculate metrics from PR data (submissions are represented by PRs)
   const openPRs = prData.total_open;
   const mergedPRs = prData.total_merged;
-  const totalTeams = displaySubmissions.length;
+  const totalSubmissions = openPRs + mergedPRs;
+
+  // Count unique teams from PRs
+  const allPRs = [...(prData.open_prs || []), ...(prData.merged_prs || [])];
+  const uniqueTeams = new Set(allPRs.map(pr => pr.user).filter(Boolean));
+  const totalTeams = uniqueTeams.size || displaySubmissions.length;
 
   // ML Track
   const mlSubmissions = displaySubmissions.filter(s => s.track === 'PlotSense ML');
@@ -81,8 +88,9 @@ function updateDashboard() {
 function renderSubmissionsTable(submissions, prData) {
   const tbody = document.getElementById('submissions-list');
 
-  // Combine submissions with PR data
-  const allPRs = [...(prData.open_prs || []), ...(prData.merged_prs || [])];
+  // Combine submissions with PR data and filter out Unknown track
+  const allPRs = [...(prData.open_prs || []), ...(prData.merged_prs || [])]
+    .filter(pr => pr.track !== 'Unknown');
 
   if (submissions.length === 0 && allPRs.length === 0) {
     tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 2rem; color: #6b7280;">No submissions found.</td></tr>';
