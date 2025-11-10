@@ -1,0 +1,26 @@
+{
+  "id": "PSH2025-800",
+  "track": "PlotSense Dev",
+  "project_name": "PlotKit",
+  "team_name": "DYung26",
+  "repo_url": "https://github.com/DYung26/plotsenseai-hackathon-PSH2025-800",
+  "video_url": "https://drive.google.com/file/d/1Z5cQ6Oaro5ZCGD5wMJonpPed1VFmbjsl/view?usp=sharing",
+  "contribution_prs": [
+    "https://github.com/PlotSenseAI/PlotSense/pull/62",
+    "https://github.com/PlotSenseAI/PlotSense/pull/63",
+    "https://github.com/PlotSenseAI/PlotSense/pull/64",
+    "https://github.com/PlotSenseAI/PlotSense/pull/65",
+    "https://github.com/PlotSenseAI/PlotSense/pull/66",
+    "https://github.com/PlotSenseAI/PlotSense/pull/67",
+    "https://github.com/PlotSenseAI/PlotSense/pull/68"
+  ],
+  "social_links": [
+    "https://x.com/DYung26/status/1984113782256198115",
+    "https://www.linkedin.com/posts/daniel-oyekunle-984b12290_plotsenseai-hackathon-submissionssubmissions-activity-7389883623816200192-EZAu/"
+  ],
+  "discord_handle": "dyung26_37363",
+  "contact_email": "danoyekunle6@gmail.com",
+  "team_members": [
+    { "name": "Daniel Oyekunle", "role": "Fullstack Developer" }
+  ]
+}
