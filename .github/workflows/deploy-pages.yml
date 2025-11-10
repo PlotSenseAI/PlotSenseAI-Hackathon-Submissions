@@ -207,7 +207,17 @@ jobs:
             return submissions
 
         def generate_metrics(submissions, pr_data):
-            if not submissions:
+            # Filter out submissions with Unknown track (used for testing)
+            submissions = [s for s in submissions if s.get('track') != 'Unknown']
+
+            # Filter out PRs with Unknown track from PR data
+            if pr_data:
+                pr_data['open_prs'] = [pr for pr in pr_data.get('open_prs', []) if pr.get('track') != 'Unknown']
+                pr_data['merged_prs'] = [pr for pr in pr_data.get('merged_prs', []) if pr.get('track') != 'Unknown']
+                pr_data['total_open'] = len(pr_data['open_prs'])
+                pr_data['total_merged'] = len(pr_data['merged_prs'])
+
+            if not submissions and pr_data.get('total_open', 0) == 0 and pr_data.get('total_merged', 0) == 0:
                 return {
                     'total_submissions': 0,
                     'total_teams': 0,
@@ -216,7 +226,14 @@ jobs:
                     'tech_stack_usage': {},
                     'team_sizes': {},
                     'submission_timeline': [],
-                    'prs': pr_data
+                    'prs': pr_data or {
+                        'open_prs': [],
+                        'merged_prs': [],
+                        'total_open': 0,
+                        'total_merged': 0,
+                        'ml_track': {'open': 0, 'merged': 0},
+                        'dev_track': {'open': 0, 'merged': 0}
+                    }
                 }
 
             metrics = {
